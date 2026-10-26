@@ -1,0 +1,14 @@
+build/
+tools/reference/
+tools/captures/
+data/spawn/
+server.txt
+server.log
+__pycache__/
+*.pyc
+*.exe
+*.jar
+*.bin
+*.schem
+*.obj
+*.pdb
