@@ -332,6 +332,11 @@ namespace mc
 	constexpr std::uint32_t terrain_magic = 0x4257434Du;
 	constexpr std::uint32_t terrain_version = 1u;
 	constexpr std::uint8_t terrain_flag_air = 1u;
+	constexpr std::uint8_t terrain_flag_solid = 4u;
+	constexpr std::uint8_t terrain_flag_dim = 8u;
+	constexpr auto light_region = 32u;
+	constexpr auto light_border = 8u;
+	constexpr std::uint32_t light_level_max = 15u;
 	constexpr std::int32_t modern_min_section = -4;
 	constexpr auto view_radius = 2;
 	constexpr std::uint8_t gamemode_survival = 0u;

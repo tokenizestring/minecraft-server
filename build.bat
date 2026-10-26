@@ -33,6 +33,7 @@ cl.exe %CFLAGS% ^
     core\network\network.cpp ^
     game\world\world.cpp ^
     game\terrain\terrain.cpp ^
+    game\light\light.cpp ^
     game\chat\chat.cpp ^
     game\command\command.cpp ^
     java\registry\java_registry.cpp ^

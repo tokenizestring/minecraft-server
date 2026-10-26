@@ -45,6 +45,7 @@
 
 #include "game/world/world.hpp"
 #include "game/terrain/terrain.hpp"
+#include "game/light/light.hpp"
 #include "game/chat/chat.hpp"
 #include "game/command/command.hpp"
 
