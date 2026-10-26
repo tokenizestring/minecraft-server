@@ -205,11 +205,19 @@ namespace mc
 		functions::write_bytes(out, sections.data(), sections.size());
 		functions::write_varint(out, 0);
 
+		auto lit{ light.compute_sky(chunk_x, chunk_z) };
+		functions::write_bitset(out, ((1ui64 << lit) - 1ui64) << 1u, layout.byte_bitsets);
 		functions::write_bitset(out, 0ui64, layout.byte_bitsets);
 		functions::write_bitset(out, 0ui64, layout.byte_bitsets);
 		functions::write_bitset(out, 0ui64, layout.byte_bitsets);
-		functions::write_bitset(out, 0ui64, layout.byte_bitsets);
-		functions::write_varint(out, 0);
+		functions::write_varint(out, static_cast<std::int32_t>(lit));
+
+		for (auto section{ 0u }; section < lit; ++section)
+		{
+			functions::write_varint(out, static_cast<std::int32_t>(light_array_size));
+			functions::write_bytes(out, light.get_section(section), light_array_size);
+		}
+
 		functions::write_varint(out, 0);
 	}
 	/*
