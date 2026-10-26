@@ -62,7 +62,28 @@ def decode_chunk(body):
         sections.append((non_air, fluid, blocks))
     assert p == end, ('section bytes', p, end)
     entities, p = rvarint(body, p)
+    masks = []
+    for _ in range(4):
+        n, p = rvarint(body, p)
+        if BYTE_BITSETS: masks.append(int.from_bytes(body[p:p + n], 'little')); p += n
+        else: masks.append(sum(struct.unpack('>Q', body[p + 8 * i:p + 8 * i + 8])[0] << (64 * i) for i in range(n))); p += 8 * n
+    count, p = rvarint(body, p); sky = {}
+    bits = [i for i in range(26) if masks[0] >> i & 1]
+    assert len(bits) == count, ('sky arrays', len(bits), count)
+    for bit in bits:
+        n, p = rvarint(body, p); assert n == 2048; sky[bit - 1] = body[p:p + n]; p += n
+    blocks_light, p = rvarint(body, p)
+    assert blocks_light == 0 and p == len(body), 'trailing light bytes'
+    LIGHT[(x, z)] = sky
     return x, z, sections
+
+LIGHT = {}
+BYTE_BITSETS = True
+def sky_at(wx, wy, wz):
+    sky = LIGHT[(wx >> 4, wz >> 4)]; section = (wy + 64) >> 4
+    if section not in sky: return 15
+    i = ((wy & 15) * 16 + (wz & 15)) * 16 + (wx & 15)
+    return (sky[section][i // 2] >> ((i & 1) * 4)) & 15
 
 fails = 0
 def check(label, condition, detail=''):
@@ -74,6 +95,7 @@ print('loading schematic...')
 world = load_schematic()
 for protocol, tag in ((777, '26_3'), (776, '26_2')):
     names = state_names(tag)
+    BYTE_BITSETS = tag == '26_3'
     cb, sb = packet_ids(tag)
     client = Java('Terrain' + tag, protocol); client.join(); time.sleep(3.0)
     with client.lock:
@@ -96,6 +118,7 @@ for protocol, tag in ((777, '26_3'), (776, '26_2')):
                 elif got != want: wrong.append(None)
     check('%s %d sampled blocks match the schematic' % (tag, checked), not wrong, wrong[:5])
     check('%s non-air counts correct in every section' % tag, air_mismatch == 0, air_mismatch)
+    check('%s sky light 15 above spawn, 0 inside the stone below' % tag, sky_at(12, 61, 7) == 15 and sky_at(12, 50, 7) == 0, (sky_at(12, 61, 7), sky_at(12, 50, 7)))
     with client.lock:
         client.log.clear()
     for step in range(1, 4):
