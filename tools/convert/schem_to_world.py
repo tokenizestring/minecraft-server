@@ -5,6 +5,23 @@ ROOT = os.path.join(HERE, '..', '..')
 REPORTS = os.path.join(HERE, '..', 'reference', 'gen_%s', 'reports', 'blocks.json')
 FLUID_BLOCKS = {'minecraft:water', 'minecraft:lava', 'minecraft:bubble_column', 'minecraft:kelp', 'minecraft:kelp_plant', 'minecraft:seagrass', 'minecraft:tall_seagrass'}
 AIR_BLOCKS = {'minecraft:air', 'minecraft:cave_air', 'minecraft:void_air'}
+CLEAR_WORDS = ('air', 'glass', 'pane', 'fence', 'wall', 'slab', 'stairs', 'torch', 'lantern', 'flower', 'tulip', 'orchid', 'allium', 'bluet', 'daisy', 'poppy', 'dandelion', 'cornflower', 'lily', 'rose_bush', 'peony', 'lilac', 'sunflower', 'short_grass', 'tall_grass', 'fern', 'sapling', 'vine', 'ladder', 'door', 'sign', 'banner', 'button', 'lever', 'rail', 'carpet', 'bars', 'chain', 'candle', 'head', 'skull', 'pot', 'rod', 'campfire', 'coral', 'scaffolding', 'sugar_cane', 'wheat', 'carrots', 'potatoes', 'beetroots', 'stem', 'dripleaf', 'spore_blossom', 'pressure_plate', 'bed', 'anvil', 'brewing_stand', 'cauldron', 'hopper', 'enchanting_table', 'cake', 'conduit', 'bell', 'grindstone', 'stonecutter', 'daylight_detector', 'repeater', 'comparator', 'redstone_wire', 'tripwire', 'chorus', 'cactus', 'pickle', 'frogspawn', 'roots', 'lichen', 'sculk_vein', 'pointed_dripstone', 'amethyst_cluster', 'amethyst_bud', 'chest', 'barrier', 'light', 'structure_void', 'beacon', 'honey_block', 'slime_block', 'piston_head', 'moving_piston', 'portal', 'fire', 'leaf_litter', 'petals', 'wildflowers', 'bush', 'egg', 'plant', 'sprouts', 'fungus', 'weeping', 'twisting', 'cave_vines', 'grate', 'spawner', 'vault', 'heavy_core', 'snow', 'mushroom', 'azalea', 'shelf', 'lectern', 'composter', 'farmland', 'dirt_path', 'bamboo', 'end_portal_frame', 'cobweb', 'kelp', 'seagrass', 'water', 'lava', 'ice', 'leaves')
+SOLID_EXCEPTIONS = ('snow_block', 'mushroom_block', 'mushroom_stem', 'bamboo_block', 'bamboo_planks', 'bamboo_mosaic', 'stripped_bamboo_block', 'tinted_glass', 'copper_bulb', 'redstone_lamp', 'sea_lantern', 'glowstone', 'shroomlight', 'packed_ice', 'blue_ice', 'light_gray', 'light_blue', 'lightning')
+DIM_WORDS = ('leaves', 'water', 'ice', 'cobweb', 'kelp', 'seagrass', 'bubble_column')
+
+def light_class(name, props):
+    short = name.split(':', 1)[1]
+    if props.get('type') == 'double' or any(word in short for word in SOLID_EXCEPTIONS if word not in ('light_gray', 'light_blue', 'lightning')) and not any(w in short for w in ('_pane', 'stairs', 'slab', 'wall', 'fence', 'door', 'carpet', 'button', 'pressure_plate', 'sign', 'banner', 'bed', 'candle')):
+        return 4
+    if props.get('waterlogged') == 'true' or any(word in short for word in DIM_WORDS):
+        return 8 if 'packed_ice' not in short and 'blue_ice' not in short else 4
+    if any(word in short for word in CLEAR_WORDS) and not short.startswith(('light_gray_', 'light_blue_')):
+        return 0
+    if short.startswith(('light_gray_', 'light_blue_')) and not any(word in short.split('_', 2)[2] for word in CLEAR_WORDS):
+        return 4
+    if short.startswith(('light_gray_', 'light_blue_')):
+        return 0
+    return 4
 
 class Nbt:
     def __init__(self, raw): self.raw, self.p = raw, 0
@@ -87,7 +104,7 @@ def main(source, target, shift_x, shift_y, shift_z):
         row = [key]
         for tag in ('26_2', '26_3'):
             row.append(ids[tag].get(key, ids[tag].get(name + '#default', 0)))
-        flags = (1 if name in AIR_BLOCKS else 0) | (2 if name in FLUID_BLOCKS or props.get('waterlogged') == 'true' else 0)
+        flags = (1 if name in AIR_BLOCKS else 0) | (2 if name in FLUID_BLOCKS or props.get('waterlogged') == 'true' else 0) | (0 if name in AIR_BLOCKS else light_class(name, props))
         row.append(flags)
         entries.append(row)
     air = [i for i, e in enumerate(entries) if e[3] & 1]
