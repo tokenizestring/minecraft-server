@@ -14,6 +14,8 @@ namespace mc
 		std::vector<std::uint8_t> file{};
 		std::uint64_t seed{};
 		auto total{ 0u };
+		auto growing{ 0u };
+		auto clock{ functions::get_clock() };
 		last_save = functions::get_time_ms();
 
 		if (auto handle{ std::fopen(functions::get_local_path(edits_path).c_str(), "rb") }; handle)
@@ -30,15 +32,17 @@ namespace mc
 		auto version{ functions::read_u32_le(in) };
 		functions::read_raw(in, &seed, sizeof(seed));
 		auto table_size{ functions::read_u32_le(in) };
-		auto usable{ in.good() && magic == edits_magic && version == edits_version && seed == config.smp_seed && table_size <= in.remaining() / 3u };
+		auto usable{ in.good() && magic == edits_magic && version >= edits_first_version && version <= edits_version && seed == config.smp_seed && table_size <= in.remaining() / 3u };
 		std::vector<std::uint16_t> table(usable ? table_size : 0u, kind_none);
+		std::vector<std::uint8_t> flags(table.size(), 0u);
 
-		for (auto& entry : table)
+		for (auto slot{ 0u }; slot < table.size(); ++slot)
 		{
 			std::uint16_t kind{};
 			functions::read_raw(in, &kind, sizeof(kind));
 			std::string name{ functions::read_string(in, max_kind_name) };
-			entry = kind < placed_kind_base && kind < blocks.get_kind_count() && blocks.get_name(kind) == name ? kind : blocks.find_name(name);
+			table[slot] = kind < placed_kind_base && kind < blocks.get_kind_count() && blocks.get_name(kind) == name ? kind : blocks.find_name(name);
+			flags[slot] = version > edits_first_version ? functions::read_u8(in) : 0u;
 		}
 
 		for (auto target{ 0u }; usable && target < structures::world_count && in.good(); ++target)
@@ -60,16 +64,25 @@ namespace mc
 					std::uint16_t slot{};
 					auto position{ functions::read_u32_le(in) };
 					functions::read_raw(in, &slot, sizeof(slot));
+					auto planted{ slot < flags.size() && flags[slot] == edits_flag_growing ? functions::read_u32_le(in) : clock };
 
 					if (in.good() && slot < table.size() && table[slot] != kind_none)
 					{
-						list->push_back(structures::edit_s{ position, table[slot] });
+						auto kind{ crops.get_settled(table[slot], planted < clock ? clock - planted : 0u) };
+						list->push_back(structures::edit_s{ position, kind, crops.is_growing(kind) ? functions::get_stamp(planted) : std::uint16_t{ 0u } });
 					}
 				}
 
 				if (in.good() && list->size())
 				{
 					total += static_cast<std::uint32_t>(list->size());
+
+					for (const auto& edit : *list)
+					{
+						growth.track(get_key(chunk_x, chunk_z), edit);
+						growing += crops.is_growing(edit.kind) ? 1u : 0u;
+					}
+
 					chunks[target][get_key(chunk_x, chunk_z)] = std::move(list);
 				}
 			}
@@ -80,12 +93,12 @@ namespace mc
 			utils::log.write(color_server, "[edits](load) '%s' is from another seed or broken, starting clean", edits_path);
 		}
 
-		utils::log.write(color_server, "[edits](load) %u block edits", total);
+		utils::log.write(color_server, "[edits](load) %u block edits, %u crops growing, version %u", total, growing, usable ? version : edits_version);
 	}
 	/*
 	//=====================================================================================
 	*/
-	bool edits_c::set(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z, std::uint16_t kind)
+	bool edits_c::set(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z, std::uint16_t kind, std::uint16_t stamp)
 	{
 		auto inside{ y >= world_min_y && y < world_min_y + world_height };
 
@@ -99,11 +112,12 @@ namespace mc
 			if (found != list->end())
 			{
 				found->kind = kind;
+				found->stamp = stamp;
 			}
 
 			else
 			{
-				list->push_back(structures::edit_s{ index, kind });
+				list->push_back(structures::edit_s{ index, kind, stamp });
 			}
 
 			slot = std::move(list);
@@ -125,17 +139,23 @@ namespace mc
 	*/
 	std::uint16_t edits_c::find(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z) const
 	{
-		auto kind{ kind_none };
+		return find_edit(target, x, y, z).kind;
+	}
+	/*
+	//=====================================================================================
+	*/
+	structures::edit_s edits_c::find_edit(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z) const
+	{
 		auto list{ get(target, x >> 4, z >> 4) };
-		auto index{ static_cast<std::uint32_t>(((y - world_min_y) * 16 + (z & 15)) * 16 + (x & 15)) };
+		structures::edit_s edit{ functions::get_edit_index(x, y, z), kind_none, 0u };
 
 		if (list)
 		{
-			auto found{ std::find_if(list->begin(), list->end(), [index](const auto& edit) { return edit.index == index; }) };
-			kind = found != list->end() ? found->kind : kind_none;
+			auto found{ std::find_if(list->begin(), list->end(), [&edit](const auto& entry) { return entry.index == edit.index; }) };
+			edit = found != list->end() ? *found : edit;
 		}
 
-		return kind;
+		return edit;
 	}
 	/*
 	//=====================================================================================
@@ -196,6 +216,7 @@ namespace mc
 		std::vector<std::uint16_t> table{};
 		std::unordered_map<std::uint16_t, std::uint16_t> slots{};
 		auto start{ functions::get_time_ms() };
+		auto clock{ functions::get_clock() };
 		auto total{ 0u };
 
 		for (const auto& world_chunks : snapshot)
@@ -222,6 +243,11 @@ namespace mc
 
 					functions::write_u32_le(body, edit.index);
 					functions::write_u16_le(body, found->second);
+
+					if (crops.is_growing(edit.kind))
+					{
+						functions::write_u32_le(body, clock - ((clock - edit.stamp) & crop_stamp_mask));
+					}
 				}
 			}
 		}
@@ -235,6 +261,7 @@ namespace mc
 		{
 			functions::write_u16_le(out, kind);
 			functions::write_string(out, blocks.get_name(kind));
+			functions::write_u8(out, crops.is_growing(kind) ? edits_flag_growing : std::uint8_t{ 0u });
 		}
 
 		functions::write_bytes(out, body.data(), body.size());
