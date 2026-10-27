@@ -11,7 +11,7 @@ namespace mc
 
 	void bedrock_menu_c::build()
 	{
-		for (const auto& entry : npc.get_npcs())
+		for (const auto& entry : hub.get_menus())
 		{
 			std::string form{ "{\"type\":\"form\",\"title\":" };
 			functions::append_json_string(form, entry.title);
@@ -27,17 +27,39 @@ namespace mc
 			forms.push_back(form.append("]}"));
 		}
 
-		utils::log.write(color_play, "[npc](build) %zu bedrock forms", forms.size());
+		utils::log.write(color_play, "[hub](build) %zu bedrock forms", forms.size());
 	}
 	/*
 	//=====================================================================================
 	*/
 	void bedrock_menu_c::open(structures::session_s& session, std::uint32_t index)
 	{
-		body.clear();
-		functions::write_varint(body, static_cast<std::int32_t>(index + 1u));
-		functions::write_string(body, forms[index]);
-		bedrock_packet.send(session, bedrock_modal_form_request, body);
+		send(session, index + 1u, forms[index]);
+	}
+	/*
+	//=====================================================================================
+	*/
+	void bedrock_menu_c::open_social(structures::session_s& session)
+	{
+		auto entries{ friends.list(session.player) };
+		std::string form{ "{\"type\":\"form\",\"title\":\"friends\",\"content\":" };
+		session.social_view.clear();
+
+		functions::append_json_string(form, entries.size() ? "tap a player to add them, tap a request to accept, tap a friend to remove them" : "nobody else is online yet");
+		form.append(",\"buttons\":[");
+
+		for (const auto& entry : entries)
+		{
+			if (session.social_view.size() < bedrock_market_buttons)
+			{
+				form.append(session.social_view.size() ? ",{\"text\":" : "{\"text\":");
+				functions::append_json_string(form, entry.name + "\n" + social_labels[entry.state]);
+				form.append("}");
+				session.social_view.push_back((entry.state == social_friend_online || entry.state == social_friend_offline ? "-" : "+") + entry.name);
+			}
+		}
+
+		send(session, bedrock_social_form, form.append("]}"));
 	}
 	/*
 	//=====================================================================================
@@ -65,38 +87,28 @@ namespace mc
 			bedrock_market.sell(session, data);
 		}
 
+		else if (in.good() && session.playing && form == bedrock_social_form && button < session.social_view.size())
+		{
+			const auto& entry{ session.social_view[button] };
+			friends.click(session.player, std::string_view{ entry }.substr(1u), entry.front() == '-');
+			session.social_view.clear();
+		}
+
 		else if (in.good() && session.playing && form == session.player.menu)
 		{
-			npc.choose(session.player, button);
+			hub.choose(session.player, button);
 			session.player.menu = 0u;
 		}
 	}
 	/*
 	//=====================================================================================
 	*/
-	void bedrock_menu_c::handle_transaction(structures::session_s& session, structures::reader_s& in)
+	void bedrock_menu_c::send(structures::session_s& session, std::uint32_t id, std::string_view form)
 	{
-		if (auto request{ functions::read_zigzag32(in) }; request && in.good())
-		{
-			auto containers{ static_cast<std::uint32_t>(functions::read_varint(in)) };
-
-			for (auto index{ 0u }; index < containers && in.good(); ++index)
-			{
-				functions::read_u8(in);
-				auto slots{ static_cast<std::uint32_t>(functions::read_varint(in)) };
-				in.valid = in.good() && in.remaining() >= slots;
-				in.cursor += in.good() ? slots : 0u;
-			}
-		}
-
-		auto type{ static_cast<std::uint32_t>(functions::read_varint(in)) };
-		auto actions{ static_cast<std::uint32_t>(functions::read_varint(in)) };
-		auto target{ functions::read_varint(in) };
-
-		if (in.good() && session.playing && type == bedrock_transaction_use_on_actor && actions == 0u)
-		{
-			npc.interact(session.player, target);
-		}
+		body.clear();
+		functions::write_varint(body, static_cast<std::int32_t>(id));
+		functions::write_string(body, form);
+		bedrock_packet.send(session, bedrock_modal_form_request, body);
 	}
 }
 

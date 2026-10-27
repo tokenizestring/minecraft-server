@@ -94,10 +94,6 @@ namespace mc
 			bedrock_chat.handle(session, in);
 			break;
 
-		case bedrock_inventory_transaction:
-			bedrock_menu.handle_transaction(session, in);
-			break;
-
 		case bedrock_modal_form_response:
 			bedrock_menu.handle_response(session, in);
 			break;
