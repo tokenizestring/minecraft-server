@@ -131,6 +131,7 @@ class Bedrock:
         c.game([bp.uvarint(8) + bp.uvarint(2) + bp.uvarint(19) + b'downloadingfinished']); c.messages(1)
         c.game([bp.uvarint(8) + bp.uvarint(3) + bp.uvarint(25) + b'resourcepackstackfinished'])
         games = [g for m in c.messages(2) if m[0] == 0xFE for g in c.decode_game(m)]
+        self.log.extend(games)
         start = [g for g in games if g[0] == 11][0][1]
         self.runtime, _ = rvarint(start, rvarint(start, 0)[1])
         c.game([bp.uvarint(113) + bp.uvarint(self.runtime)])
