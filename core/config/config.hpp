@@ -29,6 +29,8 @@ namespace mc
 		std::uint32_t chunk_budget{ 8u };
 		std::string operators;
 		std::uint64_t smp_seed{ 0ui64 };
+		std::uint64_t start_balance{ 100ui64 };
+		std::uint64_t max_price{ 1000000000ui64 };
 
 	private:
 

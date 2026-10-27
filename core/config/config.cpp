@@ -97,6 +97,16 @@ namespace mc
 			smp_seed = read_number(value, smp_seed, 1u, 0x7FFFFFFFFFFFFFFFui64);
 		}
 
+		else if (key == "start-balance")
+		{
+			start_balance = read_number(value, start_balance, 0u, 1000000000ui64);
+		}
+
+		else if (key == "max-price")
+		{
+			max_price = read_number(value, max_price, 1u, 1000000000000ui64);
+		}
+
 		else if (key == "chat-lines")
 		{
 			chat_lines = static_cast<std::uint32_t>(read_number(value, chat_lines, 1u, max_chat_lines));
@@ -134,6 +144,9 @@ namespace mc
 			std::fprintf(file, "operators=%s\n\n", operators.c_str());
 			std::fprintf(file, "# seed of the smp world, /roll picks a new one\n");
 			std::fprintf(file, "smp-seed=%llu\n\n", smp_seed);
+			std::fprintf(file, "# money new players start with, and the highest price allowed on /sell\n");
+			std::fprintf(file, "start-balance=%llu\n", start_balance);
+			std::fprintf(file, "max-price=%llu\n\n", max_price);
 			std::fprintf(file, "# chat sidebar: lines shown (1-15) and seconds before a line fades\n");
 			std::fprintf(file, "chat-lines=%u\n", chat_lines);
 			std::fprintf(file, "chat-fade-seconds=%llu\n", chat_fade_ms / 1000ui64);
