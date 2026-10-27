@@ -106,7 +106,7 @@ namespace mc
 	{
 		for (auto player : world.get_players())
 		{
-			if (player->edition == structures::edition_java)
+			if (player->npc == false)
 			{
 				save(*player);
 			}
@@ -121,7 +121,7 @@ namespace mc
 
 		for (auto player : world.get_players())
 		{
-			found = found == nullptr && !player->npc && player->edition == structures::edition_java && player->name == name ? player : found;
+			found = found == nullptr && !player->npc && player->name == name ? player : found;
 		}
 
 		return found;

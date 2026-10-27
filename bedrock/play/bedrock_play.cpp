@@ -246,6 +246,7 @@ namespace mc
 		session.player.edition = structures::edition_bedrock;
 		session.player.link = &session;
 		session.inject_ms = functions::get_time_ms() + bedrock_inject_interval_ms;
+		profile.load(session.player);
 
 		utils::log.write(color_play, "[play](join) '%s' on 'bedrock %s' entity %d at %.1f %.1f %.1f", session.name.c_str(), bedrock_version, session.player.entity_id, spawn_x, spawn_y, spawn_z);
 		world.add(session.player);
@@ -256,6 +257,11 @@ namespace mc
 	*/
 	void bedrock_play_c::leave(structures::session_s& session)
 	{
+		if (session.playing)
+		{
+			profile.save(session.player);
+		}
+
 		world.remove(session.player);
 	}
 	/*
