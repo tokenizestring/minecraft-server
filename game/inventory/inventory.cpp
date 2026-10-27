@@ -17,16 +17,17 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	bool inventory_c::click(structures::player_s& player, std::int32_t slot, std::int32_t button, std::int32_t mode, std::vector<std::int32_t>& drag, std::int32_t& drag_button) const
+	bool inventory_c::click(structures::player_s& player, std::int32_t slot, std::int32_t button, std::int32_t mode, std::vector<std::int32_t>& drag, std::int32_t& drag_button, structures::item_stack_s& thrown) const
 	{
 		auto handled{ true };
 		auto creative{ player.gamemode == gamemode_creative };
 		auto inside{ slot >= 0 && slot < static_cast<std::int32_t>(inventory_size) };
 		auto& cursor{ player.cursor };
+		thrown = {};
 
 		if (mode == click_pickup)
 		{
-			handled = (inside || slot == click_outside) && pickup(player, slot, button);
+			handled = (inside || slot == click_outside) && pickup(player, slot, button, thrown);
 		}
 
 		else if (mode == click_quick_move && inside)
@@ -48,7 +49,8 @@ namespace mc
 		else if (mode == click_throw && inside)
 		{
 			auto& stack{ player.inventory[static_cast<std::size_t>(slot)] };
-			stack.count = button == 0 && stack.count ? static_cast<std::uint8_t>(stack.count - 1u) : 0u;
+			thrown = { stack.item, static_cast<std::uint8_t>(button == 0 && stack.count ? 1u : stack.count) };
+			stack.count = static_cast<std::uint8_t>(stack.count - thrown.count);
 			stack.item = stack.count ? stack.item : 0u;
 		}
 
@@ -115,14 +117,15 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	bool inventory_c::pickup(structures::player_s& player, std::int32_t slot, std::int32_t button) const
+	bool inventory_c::pickup(structures::player_s& player, std::int32_t slot, std::int32_t button, structures::item_stack_s& thrown) const
 	{
 		auto& cursor{ player.cursor };
 		auto handled{ button == 0 || button == 1 };
 
 		if (slot == click_outside && handled)
 		{
-			cursor.count = button == 0 ? 0u : static_cast<std::uint8_t>(cursor.count ? cursor.count - 1u : 0u);
+			thrown = { cursor.item, static_cast<std::uint8_t>(button == 0 || cursor.count == 0u ? cursor.count : 1u) };
+			cursor.count = static_cast<std::uint8_t>(cursor.count - thrown.count);
 		}
 
 		else if (handled)
