@@ -473,6 +473,91 @@ namespace mc
 	constexpr std::int32_t overworld_clock = 0;
 	constexpr std::int32_t v1_8_play_out_time = 0x03;
 	constexpr std::int32_t held_light_offset = 1;
+	constexpr std::int16_t surface_none = -32768;
+	constexpr std::size_t surface_cap = 40000u;
+	constexpr std::int32_t surface_rescan = 48;
+	constexpr std::uint32_t mob_think_ticks = 10u;
+	constexpr std::uint32_t mob_despawn_ticks = 100u;
+	constexpr std::uint32_t mob_move_ticks = 3u;
+	constexpr std::uint32_t mob_spawn_ticks = 40u;
+	constexpr std::uint32_t mob_view_ticks = 10u;
+	constexpr std::int32_t mob_view_chunks = 5;
+	constexpr std::int32_t mob_count_chunks = 4;
+	constexpr std::int32_t mob_spawn_near_chunks = 2;
+	constexpr std::int32_t mob_spawn_far_chunks = 4;
+	constexpr std::int32_t mob_despawn_chunks = 8;
+	constexpr std::uint32_t mob_pack_min = 2u;
+	constexpr std::uint32_t mob_pack_max = 4u;
+	constexpr std::int32_t mob_pack_spread = 4;
+	constexpr std::int32_t mob_wander_range = 8;
+	constexpr std::uint32_t mob_wander_chance = 6u;
+	constexpr std::uint32_t mob_flee_ticks = 100u;
+	constexpr std::uint32_t mob_dying_ticks = 20u;
+	constexpr std::uint32_t mob_hurt_ticks = 10u;
+	constexpr auto mob_flee_speed = 0.24;
+	constexpr auto mob_knockback = 0.5;
+	constexpr auto mob_reach = 6.0;
+	constexpr auto mob_arrive = 0.3;
+	constexpr std::int32_t mob_max_climb = 1;
+	constexpr std::int32_t mob_max_drop = 3;
+	constexpr std::uint8_t java_metadata_health_index = 9u;
+	constexpr std::int32_t java_metadata_float_type = 3;
+	constexpr std::int32_t v1_8_play_out_spawn_mob = 0x0F;
+	constexpr std::int32_t v1_8_play_out_entity_look_move = 0x17;
+	constexpr std::int32_t v1_8_play_out_entity_status = 0x1A;
+	constexpr std::int32_t v1_8_play_out_update_health = 0x06;
+	constexpr std::int32_t v1_8_use_entity_attack = 1;
+	constexpr std::int32_t release_use_status = 5;
+	constexpr std::uint8_t entity_event_hurt = 2u;
+	constexpr std::uint8_t entity_event_death = 3u;
+	constexpr std::uint8_t entity_event_eaten = 9u;
+	constexpr auto max_health = 20.0f;
+	constexpr std::int32_t max_food = 20;
+	constexpr auto start_saturation = 5.0f;
+	constexpr auto exhaustion_step = 4.0f;
+	constexpr auto exhaustion_walk = 0.01f;
+	constexpr auto exhaustion_jump = 0.05f;
+	constexpr auto exhaustion_attack = 0.1f;
+	constexpr auto exhaustion_hurt = 0.1f;
+	constexpr auto exhaustion_heal = 6.0f;
+	constexpr std::int32_t regen_food = 18;
+	constexpr std::uint32_t regen_ticks = 80u;
+	constexpr std::uint32_t fast_regen_ticks = 10u;
+	constexpr std::uint32_t starve_ticks = 80u;
+	constexpr auto starve_floor = 1.0f;
+	constexpr auto safe_fall = 3.0;
+	constexpr std::uint32_t eat_ticks = 32u;
+	constexpr auto fist_damage = 1.0f;
+	constexpr std::uint32_t sound_ambient = 0u;
+	constexpr std::uint32_t sound_hurt = 1u;
+	constexpr std::uint32_t sound_death = 2u;
+	constexpr std::uint32_t sound_player_hurt = 0u;
+	constexpr std::uint32_t sound_player_burp = 1u;
+	constexpr std::uint32_t sound_player_small_fall = 2u;
+	constexpr std::uint32_t sound_player_big_fall = 3u;
+	constexpr std::int32_t sound_source_neutral = 6;
+	constexpr std::int32_t sound_source_players = 7;
+	constexpr std::uint32_t mob_ambient_chance = 16u;
+	constexpr auto mob_sound_range = 20.0;
+	constexpr auto big_fall_damage = 4.0f;
+	constexpr std::int32_t v1_8_play_out_named_sound = 0x29;
+	constexpr auto v1_8_sound_scale = 8.0;
+	constexpr auto v1_8_sound_pitch = 63.0f;
+	constexpr const char* v1_8_mob_sounds[][3] = { { "mob.cow.say", "mob.cow.hurt", "mob.cow.hurt" }, { "mob.pig.say", "mob.pig.say", "mob.pig.death" }, { "mob.sheep.say", "mob.sheep.say", "mob.sheep.say" }, { "mob.chicken.say", "mob.chicken.hurt", "mob.chicken.hurt" } };
+	constexpr const char* v1_8_player_sounds[] = { "game.player.hurt", "random.burp", "game.player.hurt.fall.small", "game.player.hurt.fall.big" };
+	constexpr const char* mob_names[] = { "cow", "pig", "sheep", "chicken" };
+	constexpr std::int32_t mob_types_1_8[] = { 92, 90, 91, 93 };
+	constexpr std::float_t mob_health[] = { 10.0f, 10.0f, 8.0f, 4.0f };
+	constexpr std::double_t mob_speed[] = { 0.1, 0.1, 0.11, 0.12 };
+	constexpr const char* mob_meat[] = { "minecraft:beef", "minecraft:porkchop", "minecraft:mutton", "minecraft:chicken" };
+	constexpr const char* mob_extra[] = { "minecraft:leather", "minecraft:porkchop", "minecraft:white_wool", "minecraft:feather" };
+	constexpr std::uint32_t mob_meat_max[] = { 3u, 3u, 2u, 1u };
+	constexpr std::uint32_t mob_extra_max[] = { 2u, 0u, 1u, 2u };
+	constexpr const char* food_names[] = { "minecraft:apple", "minecraft:baked_potato", "minecraft:beef", "minecraft:cooked_beef", "minecraft:bread", "minecraft:carrot", "minecraft:chicken", "minecraft:cooked_chicken", "minecraft:porkchop", "minecraft:cooked_porkchop", "minecraft:mutton", "minecraft:cooked_mutton", "minecraft:cod", "minecraft:cooked_cod", "minecraft:salmon", "minecraft:cooked_salmon", "minecraft:potato", "minecraft:rabbit", "minecraft:cooked_rabbit", "minecraft:golden_apple", "minecraft:enchanted_golden_apple", "minecraft:golden_carrot", "minecraft:melon_slice", "minecraft:sweet_berries", "minecraft:glow_berries", "minecraft:cookie", "minecraft:pumpkin_pie", "minecraft:mushroom_stew", "minecraft:beetroot", "minecraft:dried_kelp", "minecraft:rotten_flesh" };
+	constexpr std::uint8_t food_nutrition[] = { 4u, 5u, 3u, 8u, 5u, 3u, 2u, 6u, 3u, 8u, 2u, 6u, 2u, 5u, 2u, 6u, 1u, 3u, 5u, 4u, 4u, 6u, 2u, 2u, 2u, 2u, 8u, 6u, 1u, 1u, 4u };
+	constexpr std::float_t food_saturation[] = { 0.3f, 0.6f, 0.3f, 0.8f, 0.6f, 0.6f, 0.3f, 0.6f, 0.3f, 0.8f, 0.3f, 0.8f, 0.1f, 0.6f, 0.1f, 0.8f, 0.3f, 0.3f, 0.6f, 1.2f, 1.2f, 1.2f, 0.3f, 0.1f, 0.1f, 0.1f, 0.3f, 0.6f, 0.6f, 0.3f, 0.1f };
+	constexpr const char* weapon_names[] = { "minecraft:wooden_sword", "minecraft:golden_sword", "minecraft:stone_sword", "minecraft:copper_sword", "minecraft:iron_sword", "minecraft:diamond_sword", "minecraft:netherite_sword", "minecraft:wooden_axe", "minecraft:golden_axe", "minecraft:stone_axe", "minecraft:copper_axe", "minecraft:iron_axe", "minecraft:diamond_axe", "minecraft:netherite_axe", "minecraft:trident", "minecraft:mace" };
+	constexpr std::float_t weapon_damage[] = { 4.0f, 4.0f, 5.0f, 5.0f, 6.0f, 7.0f, 8.0f, 7.0f, 7.0f, 9.0f, 9.0f, 9.0f, 9.0f, 10.0f, 9.0f, 6.0f };
 	constexpr std::uint8_t v1_8_dig_start = 0u;
 	constexpr std::uint8_t v1_8_dig_finish = 2u;
 	constexpr std::uint8_t v1_8_face_none = 255u;
@@ -684,6 +769,13 @@ namespace mc
 			std::int32_t play_out_set_time;
 			bool action_direction;
 			bool packed_move;
+			std::int32_t play_out_hurt_animation;
+			std::int32_t play_out_entity_event;
+			std::int32_t play_out_set_health;
+			std::int32_t mob_types[std::size(mob_names)];
+			std::int32_t play_out_sound_entity;
+			std::int32_t mob_sounds[std::size(mob_names)][3];
+			std::int32_t player_sounds[4];
 		};
 		/*
 		//=====================================================================================
@@ -1160,6 +1252,41 @@ namespace mc
 		/*
 		//=====================================================================================
 		*/
+		enum mob_state_e : std::uint8_t
+		{
+			mob_idle,
+			mob_walk,
+			mob_flee,
+			mob_dying
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct mob_s
+		{
+			std::int32_t entity_id;
+			std::uint64_t uuid_high;
+			std::uint64_t uuid_low;
+			std::uint8_t kind;
+			mob_state_e state;
+			std::uint8_t sent_yaw;
+			bool moved;
+			std::double_t x;
+			std::double_t y;
+			std::double_t z;
+			std::double_t sent_x;
+			std::double_t sent_y;
+			std::double_t sent_z;
+			std::double_t target_x;
+			std::double_t target_z;
+			std::float_t yaw;
+			std::float_t health;
+			std::uint32_t timer;
+			std::uint32_t hurt;
+		};
+		/*
+		//=====================================================================================
+		*/
 		struct listing_s
 		{
 			std::uint32_t id;
@@ -1202,6 +1329,16 @@ namespace mc
 			std::vector<std::string> friends;
 			std::vector<std::string> requests;
 			std::uint64_t rtp_ms;
+			std::float_t health;
+			std::int32_t food;
+			std::float_t saturation;
+			std::float_t exhaustion;
+			std::double_t fall;
+			std::uint32_t regen_timer;
+			std::uint32_t starve_timer;
+			std::uint32_t eating;
+			std::uint32_t eating_slot;
+			bool vitals_dirty;
 		};
 		/*
 		//=====================================================================================
@@ -1371,6 +1508,7 @@ namespace mc
 			std::uint32_t epoch;
 			std::array<std::shared_ptr<const std::vector<edit_s>>, 9u> around;
 			std::shared_ptr<const std::vector<std::uint8_t>> packet;
+			std::shared_ptr<const std::array<std::int16_t, 256u>> surface;
 		};
 		/*
 		//=====================================================================================
@@ -1431,6 +1569,7 @@ namespace mc
 			std::string market_filter;
 			std::array<std::uint32_t, market_page_size> market_view;
 			std::unordered_set<std::int32_t> seen_drops;
+			std::unordered_set<std::int32_t> seen_mobs;
 			std::uint8_t glow_level;
 			std::int32_t glow_x;
 			std::int32_t glow_y;
@@ -1457,6 +1596,13 @@ namespace mc
 		static std::uint64_t get_time_ms()
 		{
 			return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::uint64_t get_time_us()
+		{
+			return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
 		}
 		/*
 		//=====================================================================================
@@ -2062,11 +2208,11 @@ namespace mc
 			switch (family)
 			{
 			case structures::family_26_2:
-				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_move_entity_rot = 0x38,.play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3B, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x60, .play_out_transfer = 0x81, .item_path = "data/java/items_26_2.txt", .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x35, .play_in_set_creative_slot = 0x38, .play_out_player_inventory = 0x6C, .play_out_take_item = 0x7C, .play_out_entity_data = 0x63, .play_out_move_entity_pos = 0x35, .item_entity_type = 71, .play_out_set_time = 0x71, .action_direction = false, .packed_move = false };
+				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_move_entity_rot = 0x38,.play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3B, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x60, .play_out_transfer = 0x81, .item_path = "data/java/items_26_2.txt", .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x35, .play_in_set_creative_slot = 0x38, .play_out_player_inventory = 0x6C, .play_out_take_item = 0x7C, .play_out_entity_data = 0x63, .play_out_move_entity_pos = 0x35, .item_entity_type = 71, .play_out_set_time = 0x71, .action_direction = false, .packed_move = false, .play_out_hurt_animation = 0x2A, .play_out_entity_event = 0x22, .play_out_set_health = 0x68, .mob_types = { 30, 100, 111, 26 }, .play_out_sound_entity = 0x74, .mob_sounds = { { 450, 451, 452 }, { 1268, 1269, 1270 }, { 1438, 1440, 1439 }, { 356, 357, 358 } }, .player_sounds = { 1312, 1310, 1318, 1308 } };
 				break;
 
 			case structures::family_26_3:
-				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_move_entity_rot = 0x39,.play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3C, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x62, .play_out_transfer = 0x84, .item_path = "data/java/items_26_3.txt", .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x36, .play_in_set_creative_slot = 0x39, .play_out_player_inventory = 0x6E, .play_out_take_item = 0x7F, .play_out_entity_data = 0x65, .play_out_move_entity_pos = 0x36, .item_entity_type = 72, .play_out_set_time = 0x73, .action_direction = true, .packed_move = true };
+				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_move_entity_rot = 0x39,.play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3C, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x62, .play_out_transfer = 0x84, .item_path = "data/java/items_26_3.txt", .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x36, .play_in_set_creative_slot = 0x39, .play_out_player_inventory = 0x6E, .play_out_take_item = 0x7F, .play_out_entity_data = 0x65, .play_out_move_entity_pos = 0x36, .item_entity_type = 72, .play_out_set_time = 0x73, .action_direction = true, .packed_move = true, .play_out_hurt_animation = 0x2B, .play_out_entity_event = 0x22, .play_out_set_health = 0x6A, .mob_types = { 30, 101, 114, 26 }, .play_out_sound_entity = 0x76, .mob_sounds = { { 450, 451, 452 }, { 1272, 1273, 1274 }, { 1442, 1444, 1443 }, { 356, 357, 358 } }, .player_sounds = { 1316, 1314, 1322, 1312 } };
 				break;
 			}
 

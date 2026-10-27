@@ -69,6 +69,7 @@ namespace mc
 
 			if (now = functions::get_time_ms(); now >= next_tick)
 			{
+				auto started{ functions::get_time_us() };
 				tick(now);
 				raknet.tick(now);
 				world.tick();
@@ -78,7 +79,10 @@ namespace mc
 				edits.tick(now);
 				drops.tick();
 				java_glow.tick();
+				mobs.tick();
+				vitals.tick();
 				next_tick = std::max(next_tick + tick_ms, now);
+				measure(functions::get_time_us() - started);
 			}
 
 			raknet.flush();
@@ -597,6 +601,23 @@ namespace mc
 			{
 				close(*client, nullptr);
 			}
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void network_c::measure(std::uint64_t spent)
+	{
+		spent_total += spent;
+		spent_peak = std::max(spent_peak, spent);
+		spent_ticks += 1u;
+
+		if (spent_ticks >= static_cast<std::uint32_t>(autosave_ms / tick_ms))
+		{
+			utils::log.write(color_server, "[perf](tick) avg %.2f ms, worst %.2f ms, %zu players, %zu mobs, %zu loaded chunks", static_cast<std::double_t>(spent_total) / spent_ticks / 1000.0, static_cast<std::double_t>(spent_peak) / 1000.0, world.get_players().size(), mobs.count(), java_chunk.get_cached());
+			spent_total = 0u;
+			spent_peak = 0u;
+			spent_ticks = 0u;
 		}
 	}
 	/*

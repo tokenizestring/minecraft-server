@@ -35,6 +35,8 @@ namespace mc
 		std::uint64_t smp_day_cycle{ 1ui64 };
 		std::uint64_t held_light{ 1ui64 };
 		std::uint64_t rtp_radius{ 3000ui64 };
+		std::uint64_t mob_cap{ 4000ui64 };
+		std::uint64_t mob_density{ 40ui64 };
 
 	private:
 

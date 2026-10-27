@@ -39,6 +39,7 @@ namespace mc
 		void process(structures::client_s& client);
 		void queue(structures::client_s& client);
 		void tick(std::uint64_t now);
+		void measure(std::uint64_t spent);
 		void sweep();
 		void shutdown();
 
@@ -49,6 +50,9 @@ namespace mc
 		LPFN_ACCEPTEX accept_ex;
 		std::atomic<bool> running;
 		std::uint32_t dead;
+		std::uint64_t spent_total;
+		std::uint64_t spent_peak;
+		std::uint32_t spent_ticks;
 		std::array<structures::operation_s, accept_backlog> accepts;
 		std::vector<std::unique_ptr<structures::client_s>> clients;
 		std::vector<structures::client_s*> dirty;

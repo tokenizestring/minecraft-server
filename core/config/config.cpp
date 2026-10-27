@@ -127,6 +127,16 @@ namespace mc
 			rtp_radius = read_number(value, rtp_radius, 16u, 1000000u);
 		}
 
+		else if (key == "mob-cap")
+		{
+			mob_cap = read_number(value, mob_cap, 0u, 100000u);
+		}
+
+		else if (key == "mob-density")
+		{
+			mob_density = read_number(value, mob_density, 0u, 1000u);
+		}
+
 		else if (key == "chat-lines")
 		{
 			chat_lines = static_cast<std::uint32_t>(read_number(value, chat_lines, 1u, max_chat_lines));
@@ -174,6 +184,9 @@ namespace mc
 			std::fprintf(file, "held-light=%llu\n\n", held_light);
 			std::fprintf(file, "# random teleport lands this many blocks from the smp centre at most\n");
 			std::fprintf(file, "rtp-radius=%llu\n\n", rtp_radius);
+			std::fprintf(file, "# animals in the smp: most alive at once, and how many to keep around each player (0 turns spawning off)\n");
+			std::fprintf(file, "mob-cap=%llu\n", mob_cap);
+			std::fprintf(file, "mob-density=%llu\n\n", mob_density);
 			std::fprintf(file, "# chat sidebar: lines shown (1-15) and seconds before a line fades\n");
 			std::fprintf(file, "chat-lines=%u\n", chat_lines);
 			std::fprintf(file, "chat-fade-seconds=%llu\n", chat_fade_ms / 1000ui64);
