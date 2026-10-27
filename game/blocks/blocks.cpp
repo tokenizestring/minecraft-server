@@ -45,6 +45,7 @@ namespace mc
 		}
 
 		load_placed();
+		load_light();
 
 		if (count == structures::block_count)
 		{
@@ -83,6 +84,71 @@ namespace mc
 	bool blocks_c::is_fluid(std::uint8_t block) const
 	{
 		return fluids[block];
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint8_t blocks_c::get_emission(std::uint16_t kind) const
+	{
+		return kind < kind_emission.size() ? kind_emission[kind] : 0u;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint8_t blocks_c::get_opacity(std::uint16_t kind) const
+	{
+		return kind < kind_opacity.size() ? kind_opacity[kind] : static_cast<std::uint8_t>(light_level_max);
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint8_t blocks_c::get_state_emission(std::uint32_t state) const
+	{
+		return state < state_emission.size() ? state_emission[state] : 0u;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint32_t blocks_c::get_light_state(structures::family_e family, std::uint8_t level) const
+	{
+		return get_state(family, light_kind) - (light_level_max - std::min<std::uint32_t>(level, light_level_max)) * 2u;
+	}
+	/*
+	//=====================================================================================
+	*/
+	void blocks_c::load_light()
+	{
+		std::vector<std::uint8_t> state_opacity{};
+
+		if (auto file{ std::fopen(functions::get_local_path(light_path).c_str(), "rb") }; file)
+		{
+			std::uint32_t state{};
+			std::uint32_t level{};
+			std::uint32_t opacity{};
+
+			while (std::fscanf(file, "%u %u %u", &state, &level, &opacity) == 3)
+			{
+				state_emission.resize(std::max<std::size_t>(state_emission.size(), state + 1u), 0u);
+				state_opacity.resize(std::max<std::size_t>(state_opacity.size(), state + 1u), static_cast<std::uint8_t>(light_level_max));
+				state_emission[state] = static_cast<std::uint8_t>(std::min<std::uint32_t>(level, light_level_max));
+				state_opacity[state] = static_cast<std::uint8_t>(std::min<std::uint32_t>(opacity, light_level_max));
+			}
+
+			std::fclose(file);
+		}
+
+		light_kind = find_name("minecraft:light");
+		kind_emission.assign(kind_names.size(), 0u);
+		kind_opacity.assign(kind_names.size(), static_cast<std::uint8_t>(light_level_max));
+
+		for (auto kind{ 0u }; kind < kind_names.size(); ++kind)
+		{
+			auto state{ get_state(structures::family_26_3, static_cast<std::uint16_t>(kind)) };
+			kind_emission[kind] = get_state_emission(state);
+			kind_opacity[kind] = kind < placed_kind_base ? filters[kind] : (state < state_opacity.size() ? state_opacity[state] : static_cast<std::uint8_t>(light_level_max));
+		}
+
+		utils::log.write(color_server, "[blocks](light) %zu light states, %zu glowing kinds", state_emission.size(), static_cast<std::size_t>(std::count_if(kind_emission.begin(), kind_emission.end(), [](auto level) { return level != 0u; })));
 	}
 	/*
 	//=====================================================================================
