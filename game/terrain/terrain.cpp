@@ -151,6 +151,14 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	bool terrain_c::is_solid_at(std::int32_t x, std::int32_t y, std::int32_t z) const
+	{
+		const auto* section{ get_section(x >> 4, y >> 4, z >> 4) };
+		return section && is_solid(*section, static_cast<std::uint32_t>(((y & 15) * 16 + (z & 15)) * 16 + (x & 15)));
+	}
+	/*
+	//=====================================================================================
+	*/
 	template <typename type_t>
 	bool terrain_c::read_array(structures::reader_s& in, std::vector<type_t>& out, std::size_t count)
 	{
