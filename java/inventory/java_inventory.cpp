@@ -33,13 +33,12 @@ namespace mc
 
 		for (auto window_slot{ 0 }; window_slot < static_cast<std::int32_t>(count); ++window_slot)
 		{
-			auto slot{ inventory_c::get_slot(window_slot) };
-			write_item(packet, client.family, slot >= 0 ? client.player.inventory[static_cast<std::size_t>(slot)] : structures::item_stack_s{});
+			write_slot(packet, client, inventory_c::get_slot(window_slot));
 		}
 
 		if (modern)
 		{
-			write_item(packet, client.family, client.player.cursor);
+			write_item(packet, client.family, is_hub(client) ? structures::item_stack_s{} : client.player.cursor);
 			network.send(client, packet);
 		}
 
@@ -50,7 +49,7 @@ namespace mc
 			functions::write_varint(packet, v1_8_play_out_set_slot);
 			functions::write_u8(packet, 0xFFu);
 			functions::write_u16(packet, 0xFFFFu);
-			write_item(packet, client.family, client.player.cursor);
+			write_item(packet, client.family, is_hub(client) ? structures::item_stack_s{} : client.player.cursor);
 			network.send(client, packet);
 		}
 	}
@@ -74,7 +73,7 @@ namespace mc
 			functions::write_u16(packet, static_cast<std::uint16_t>(inventory_c::get_window_slot(slot)));
 		}
 
-		write_item(packet, client.family, client.player.inventory[slot]);
+		write_slot(packet, client, static_cast<std::int32_t>(slot));
 		network.send(client, packet);
 	}
 	/*
@@ -98,7 +97,12 @@ namespace mc
 
 		auto carried{ read_hashed(client.family, in) };
 
-		if (in.good() && window == 0)
+		if (in.good() && window == 0 && is_hub(client))
+		{
+			send_all(client);
+		}
+
+		else if (in.good() && window == 0)
 		{
 			structures::item_stack_s thrown{};
 			auto slot_index{ inventory_c::get_slot(slot) };
@@ -149,7 +153,12 @@ namespace mc
 			network.send(client, packet);
 		}
 
-		if (in.good() && window == 0)
+		if (in.good() && window == 0 && is_hub(client))
+		{
+			send_all(client);
+		}
+
+		else if (in.good() && window == 0)
 		{
 			structures::item_stack_s thrown{};
 			auto slot_index{ inventory_c::get_slot(slot) };
@@ -181,10 +190,15 @@ namespace mc
 		auto count{ functions::read_varint(in) };
 		auto id{ count > 0 ? functions::read_varint(in) : 0 };
 
-		if (in.good() && slot >= 0 && client.player.gamemode == gamemode_creative)
+		if (in.good() && slot >= 0 && client.player.gamemode == gamemode_creative && is_hub(client) == false)
 		{
 			auto item{ items.find_java(client.family, id) };
 			client.player.inventory[static_cast<std::size_t>(slot)] = { item, static_cast<std::uint8_t>(item && count > 0 ? std::min(count, 255) : 0) };
+		}
+
+		else if (in.good() && is_hub(client))
+		{
+			send_all(client);
 		}
 	}
 	/*
@@ -197,10 +211,15 @@ namespace mc
 		auto count{ id >= 0 ? functions::read_u8(in) : 0u };
 		auto damage{ id >= 0 ? functions::read_u16(in) : 0u };
 
-		if (in.good() && slot >= 0 && client.player.gamemode == gamemode_creative)
+		if (in.good() && slot >= 0 && client.player.gamemode == gamemode_creative && is_hub(client) == false)
 		{
 			auto item{ id >= 0 ? items.find_java(structures::family_1_8, (static_cast<std::int32_t>(id) << 16) | damage) : std::uint16_t{ 0u } };
 			client.player.inventory[static_cast<std::size_t>(slot)] = { item, static_cast<std::uint8_t>(item ? count : 0u) };
+		}
+
+		else if (in.good() && is_hub(client))
+		{
+			send_all(client);
 		}
 	}
 	/*
@@ -220,9 +239,13 @@ namespace mc
 	*/
 	void java_inventory_c::swap_hands(structures::client_s& client)
 	{
-		if (functions::is_modern(client.family))
+		if (functions::is_modern(client.family) && is_hub(client) == false)
 		{
 			std::swap(client.player.inventory[client.player.held_slot], client.player.inventory[offhand_slot]);
+		}
+
+		if (functions::is_modern(client.family))
+		{
 			send_slot(client, client.player.held_slot);
 			send_slot(client, offhand_slot);
 		}
@@ -292,6 +315,11 @@ namespace mc
 			java_market.click(client, slot, button, mode);
 		}
 
+		else if (window == static_cast<std::int32_t>(social_window_id) && client.social_open)
+		{
+			java_social.click(client, slot, button, mode);
+		}
+
 		send_all(client);
 	}
 	/*
@@ -324,6 +352,35 @@ namespace mc
 		}
 
 		return stack;
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_inventory_c::write_slot(std::vector<std::uint8_t>& out, const structures::client_s& client, std::int32_t slot)
+	{
+		const auto* hub_item{ is_hub(client) && slot >= 0 ? hub.get_hotbar(static_cast<std::uint32_t>(slot)) : nullptr };
+
+		if (hub_item)
+		{
+			java_market_c::write_entry(out, client.family, { items.find_name(hub_item->item), 1u }, hub_item->name, hub_item->lore);
+		}
+
+		else if (is_hub(client) == false && slot >= 0)
+		{
+			write_item(out, client.family, client.player.inventory[static_cast<std::size_t>(slot)]);
+		}
+
+		else
+		{
+			write_item(out, client.family, {});
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	bool java_inventory_c::is_hub(const structures::client_s& client)
+	{
+		return client.player.world == structures::world_spawn;
 	}
 	/*
 	//=====================================================================================

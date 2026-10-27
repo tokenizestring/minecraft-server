@@ -24,8 +24,11 @@ namespace mc
 		void drop(structures::client_s& client, bool all);
 
 		static void write_item(std::vector<std::uint8_t>& out, structures::family_e family, const structures::item_stack_s& stack);
+		static bool is_hub(const structures::client_s& client);
 
 	private:
+
+		static void write_slot(std::vector<std::uint8_t>& out, const structures::client_s& client, std::int32_t slot);
 
 		void click_window(structures::client_s& client, std::int32_t window, std::int32_t slot, std::int32_t button, std::int32_t mode);
 		static structures::item_stack_s read_hashed(structures::family_e family, structures::reader_s& in);

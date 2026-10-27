@@ -150,7 +150,7 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	void java_market_c::write_entry(std::vector<std::uint8_t>& out, structures::family_e family, const structures::item_stack_s& stack, std::string_view name, const std::vector<std::string>& lore) const
+	void java_market_c::write_entry(std::vector<std::uint8_t>& out, structures::family_e family, const structures::item_stack_s& stack, std::string_view name, const std::vector<std::string>& lore)
 	{
 		auto id{ items.get_java(family, stack.item) };
 
