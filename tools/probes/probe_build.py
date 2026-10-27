@@ -81,7 +81,7 @@ check('spawn stays protected (no block update, only the ack)', not spawn_updates
 go_smp(b, (sb3['chat_command'], 'smp')); go_smp(w2, (sb2['chat_command'], 'smp')); go_smp(w8, (0x01, '/smp'))
 b.send(sb3['chat_command'], mstr('gamemode creative')); time.sleep(0.3)
 with b.lock: spot = [x for p, x in b.log if p == cb3['player_position']][-1]
-sx, sy, sz = int(struct.unpack('>d', spot[1:9])[0] // 1), int(struct.unpack('>d', spot[9:17])[0]), int(struct.unpack('>d', spot[17:25])[0] // 1)
+sx, sy, sz = [int(v // 1) for v in teleport_spot(spot)]
 
 b.send(sb3['set_carried_item'], struct.pack('>H', 0))
 b.send(sb3['set_creative_mode_slot'], struct.pack('>H', 36) + varint(1) + varint(items.index('minecraft:stone')) + varint(0) + varint(0))

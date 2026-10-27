@@ -46,7 +46,7 @@ for name in ('bedrockseller', 'bedrockbuyer'):
 s = Java('BedrockSeller', 777); s.join(); time.sleep(0.8)
 s.send(sb3['chat_command'], mstr('smp')); time.sleep(2.0)
 with s.lock: spot = [x for p, x in s.log if p == cb3['player_position']][-1]
-sx, sy, sz = int(struct.unpack('>d', spot[1:9])[0] // 1), int(struct.unpack('>d', spot[9:17])[0]), int(struct.unpack('>d', spot[17:25])[0] // 1)
+sx, sy, sz = [int(v // 1) for v in teleport_spot(spot)]
 import random
 sx += random.randint(-40, 40); sz += random.randint(-40, 40)
 s.send(sb3['set_carried_item'], struct.pack('>H', 0))

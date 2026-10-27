@@ -102,7 +102,7 @@ check('1.8 gets a frozen dusk time', t8 and struct.unpack('>q', t8[-1][8:16])[0]
 
 a.send(sb3['chat_command'], mstr('smp')); b.send(sb2['chat_command'], mstr('smp')); time.sleep(2.0)
 with a.lock: spot = [x for p, x in a.log if p == cb3['player_position']][-1]
-ax, ay, az = struct.unpack('>ddd', spot[1:25])
+ax, ay, az = teleport_spot(spot)
 def pos(x, y, z): return struct.pack('>Q', ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF))
 def updates(client, pid, x, y, z):
     with client.lock: return [rvarint(m, 8)[0] for p, m in client.log if p == pid and m[:8] == pos(x, y, z)]
@@ -140,7 +140,7 @@ open(os.path.join(BIN, 'players', 'lightplacer.txt'), 'w').write('balance 100\ns
 pl = Java('LightPlacer', 777); pl.join(); time.sleep(0.6)
 pl.send(sb3['chat_command'], mstr('smp')); time.sleep(2.0)
 with pl.lock: spot = [x for p, x in pl.log if p == cb3['player_position']][-1]
-sx, sy, sz = int(struct.unpack('>d', spot[1:9])[0] // 1), int(struct.unpack('>d', spot[9:17])[0]), int(struct.unpack('>d', spot[17:25])[0] // 1)
+sx, sy, sz = [int(v // 1) for v in teleport_spot(spot)]
 import random
 tx, ty, tz = ((sx >> 4) << 4) + 15, sy + 40 + random.randint(0, 20), sz
 pl.send(sb3['use_item_on'], varint(0) + pos(tx, ty - 1, tz) + varint(1) + struct.pack('>fff??', 0.5, 1.0, 0.5, False, False) + varint(5)); time.sleep(0.5)

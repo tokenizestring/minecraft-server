@@ -27,6 +27,10 @@ def rvarint(b, p):
 def mstr(t):
     t = t.encode(); return varint(len(t)) + t
 
+def teleport_spot(body):
+    _, p = rvarint(body, 0)
+    return struct.unpack('>ddd', body[p:p + 24])
+
 def packet_ids(tag):
     d = json.load(open(os.path.join(HERE, '..', 'reference', 'gen_' + tag, 'reports', 'packets.json')))
     cb = {k.split(':')[1]: v['protocol_id'] for k, v in d['play']['clientbound'].items()}

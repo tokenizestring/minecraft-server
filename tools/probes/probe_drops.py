@@ -32,7 +32,7 @@ for client, command in ((m, (sb3['chat_command'], mstr('smp'))), (w2, (sb2['chat
     client.send(*command)
 time.sleep(2.5)
 with m.lock: spot = [x for p, x in m.log if p == cb3['player_position']][-1]
-sx, sy, sz = int(struct.unpack('>d', spot[1:9])[0] // 1), int(struct.unpack('>d', spot[9:17])[0]), int(struct.unpack('>d', spot[17:25])[0] // 1)
+sx, sy, sz = [int(v // 1) for v in teleport_spot(spot)]
 import random
 sx += random.randint(-40, 40); sz += random.randint(-40, 40)
 m.move(sx + 0.5, sy, sz + 0.5, 0.0)

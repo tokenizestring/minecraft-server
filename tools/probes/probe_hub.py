@@ -1,4 +1,4 @@
-import time, sys, os, struct, json
+import time, sys, os, struct, json, re
 sys.path[:0] = [os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', d) for d in ('probes', 'decode')]
 from clients import *
 
@@ -134,7 +134,9 @@ clear(a)
 a.send(sb3['set_carried_item'], struct.pack('>H', 0)); use(a, sb3)
 click(a, sb3, 7, 13); time.sleep(1.5)
 with a.lock: jumps = [x for p, x in a.log if p == cb3['player_position']]
-far = jumps and (abs(struct.unpack('>d', jumps[-1][1:9])[0]) > 20 or abs(struct.unpack('>d', jumps[-1][17:25])[0]) > 20)
+said = [re.search(rb'teleported to (-?\d+) (-?\d+)', n) for n in notes(a, cb3)]
+said = [m for m in said if m]
+far = jumps and said and abs(teleport_spot(jumps[-1])[0] - int(said[-1].group(1))) < 1.5 and abs(teleport_spot(jumps[-1])[2] - int(said[-1].group(2))) < 1.5
 check('random teleport drops you somewhere in the smp', any(b'teleported to' in n for n in notes(a, cb3)) and far, notes(a, cb3))
 clear(a)
 a.send(sb3['chat_command'], mstr('rtp')); time.sleep(0.4)

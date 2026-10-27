@@ -61,7 +61,7 @@ check('switching to the smp unloads the spawn chunks', len(forgets) == (2 * VIEW
 check('and streams %d generated chunks' % ((2 * VIEW + 1) ** 2), len(chunks) == (2 * VIEW + 1) ** 2, len(chunks))
 print('   169 generated chunks arrived in %.0f ms (first time, nothing cached)' % (elapsed * 1000))
 check('welcome notice', any(b'welcome to smp' in n for n in notes), notes)
-spawn = struct.unpack('>ddd', positions[-1][1:25]) if positions else None
+spawn = teleport_spot(positions[-1]) if positions else None
 check('teleported onto land above sea level', spawn and spawn[1] > 63, spawn)
 counts = {}
 decoded = {}
@@ -82,7 +82,7 @@ check('walking 4 chunks streams new generated chunks', more == 4 * (2 * VIEW + 1
 with c.lock: c.log.clear()
 c.send(sb['chat_command'], mstr('spawn')); time.sleep(1.0)
 with c.lock: back = [b for p, b in c.log if p == cb['player_position']]
-check('/spawn goes back to the spawn build', back and abs(struct.unpack('>d', back[-1][9:17])[0] - 60.0) < 0.01, back)
+check('/spawn goes back to the spawn build', back and abs(teleport_spot(back[-1])[1] - 60.0) < 0.01, back)
 c.close()
 
 c = Java('SmpProbe18', 47); c.join(); time.sleep(0.8)

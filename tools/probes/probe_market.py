@@ -64,7 +64,7 @@ first = contents(s, cb3, 0)
 check('joining sends the player inventory', first and len(first[-1][1]) == 46, len(first[-1][1]) if first else None)
 say(s, sb3, 'smp', 2.0)
 with s.lock: spot = [x for p, x in s.log if p == cb3['player_position']][-1]
-sx, sy, sz = int(struct.unpack('>d', spot[1:9])[0] // 1), int(struct.unpack('>d', spot[9:17])[0]), int(struct.unpack('>d', spot[17:25])[0] // 1)
+sx, sy, sz = [int(v // 1) for v in teleport_spot(spot)]
 import random
 sx += random.randint(-40, 40); sz += random.randint(-40, 40)
 with s.lock: s.log.clear()
