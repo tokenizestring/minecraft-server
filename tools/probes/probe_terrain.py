@@ -73,7 +73,10 @@ def decode_chunk(body):
     for bit in bits:
         n, p = rvarint(body, p); assert n == 2048; sky[bit - 1] = body[p:p + n]; p += n
     blocks_light, p = rvarint(body, p)
-    assert blocks_light == 0 and p == len(body), 'trailing light bytes'
+    assert blocks_light == bin(masks[1]).count('1'), ('block arrays', blocks_light, masks[1])
+    for _ in range(blocks_light):
+        n, p = rvarint(body, p); assert n == 2048; p += n
+    assert p == len(body), 'trailing light bytes'
     LIGHT[(x, z)] = sky
     return x, z, sections
 
