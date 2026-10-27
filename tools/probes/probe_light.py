@@ -100,6 +100,7 @@ c8 = Java('Light18', 47); c8.join(); time.sleep(0.8)
 with c8.lock: t8 = [x for p, x in c8.log if p == 0x03]
 check('1.8 gets a frozen dusk time', t8 and struct.unpack('>q', t8[-1][8:16])[0] == -13000, t8)
 
+a.send(sb3['chat_command'], mstr('smp')); b.send(sb2['chat_command'], mstr('smp')); time.sleep(2.0)
 with a.lock: spot = [x for p, x in a.log if p == cb3['player_position']][-1]
 ax, ay, az = struct.unpack('>ddd', spot[1:25])
 def pos(x, y, z): return struct.pack('>Q', ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF))
@@ -129,7 +130,7 @@ check('f moves it to the offhand and it still lights', updates(b, cb2['block_upd
 a.close(); time.sleep(0.6)
 check('leaving clears the light for others', updates(b, cb2['block_update'], *moved)[-1:] == [0])
 
-b.send(sb2['chat_command'], mstr('smp')); time.sleep(2.0)
+time.sleep(5.2)
 with b.lock: t = [x for p, x in b.log if p == cb2['set_time']]
 if t:
     p = 8; _, p = rvarint(t[-1], p); _, p = rvarint(t[-1], p); total, p = rvarint(t[-1], p); _, rate = struct.unpack('>ff', t[-1][p:p + 8])
@@ -141,7 +142,7 @@ pl.send(sb3['chat_command'], mstr('smp')); time.sleep(2.0)
 with pl.lock: spot = [x for p, x in pl.log if p == cb3['player_position']][-1]
 sx, sy, sz = int(struct.unpack('>d', spot[1:9])[0] // 1), int(struct.unpack('>d', spot[9:17])[0]), int(struct.unpack('>d', spot[17:25])[0] // 1)
 import random
-tx, ty, tz = ((sx >> 4) << 4) + 15, sy + 6 + random.randint(0, 20), sz
+tx, ty, tz = ((sx >> 4) << 4) + 15, sy + 40 + random.randint(0, 20), sz
 pl.send(sb3['use_item_on'], varint(0) + pos(tx, ty - 1, tz) + varint(1) + struct.pack('>fff??', 0.5, 1.0, 0.5, False, False) + varint(5)); time.sleep(0.5)
 pl.close(); time.sleep(0.3)
 fresh = Java('LightFresh', 777); fresh.join(); time.sleep(0.6)

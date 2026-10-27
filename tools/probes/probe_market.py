@@ -88,6 +88,7 @@ say(s, sb3, 'sell 5')
 check('selling with an empty hand is refused', any(b'hold the item' in n for n in notes(s, cb3)), None)
 
 b = Java('MarketBuyer', 776); b.join(); time.sleep(0.8)
+b.send(sb2['chat_command'], mstr('smp')); time.sleep(1.5)
 with b.lock: b.log.clear()
 say(b, sb2, 'buy', 0.6)
 with b.lock: screens = [x for p, x in b.log if p == cb2['open_screen']]
@@ -129,6 +130,7 @@ saved = open(os.path.join(BIN, 'players', 'marketbuyer.txt')).read()
 check('profiles are saved on leave', 'balance 105' in saved and 'slot 20 ' + items3[mined[0]] in saved, saved)
 
 again = Java('MarketBuyer', 777); again.join(); time.sleep(0.8)
+again.send(sb3['chat_command'], mstr('smp')); time.sleep(1.5)
 back = contents(again, cb3, 0)
 check('inventory comes back on rejoin', back and back[-1][1][20] and items3[back[-1][1][20][0]] == items3[mined[0]], back and back[-1][1][20])
 again.close()
