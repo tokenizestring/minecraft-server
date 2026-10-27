@@ -69,6 +69,7 @@ cl.exe %CFLAGS% ^
     bedrock\player\bedrock_player.cpp ^
     bedrock\chat\bedrock_chat.cpp ^
     bedrock\menu\bedrock_menu.cpp ^
+    bedrock\market\bedrock_market.cpp ^
     bedrock\debug\bedrock_debug.cpp ^
     /Fo"build\obj\\" ^
     /Fe"build\bin\server.exe" ^

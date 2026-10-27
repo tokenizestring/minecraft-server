@@ -87,6 +87,7 @@
 #include "bedrock/player/bedrock_player.hpp"
 #include "bedrock/chat/bedrock_chat.hpp"
 #include "bedrock/menu/bedrock_menu.hpp"
+#include "bedrock/market/bedrock_market.hpp"
 #include "bedrock/debug/bedrock_debug.hpp"
 
 //=====================================================================================

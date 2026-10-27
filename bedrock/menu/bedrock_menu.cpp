@@ -55,7 +55,17 @@ namespace mc
 			std::from_chars(data.data() + start, data.data() + data.size(), button);
 		}
 
-		if (in.good() && session.playing && form == session.player.menu)
+		if (in.good() && session.playing && answered && form == bedrock_market_buy_form)
+		{
+			bedrock_market.choose(session, button);
+		}
+
+		else if (in.good() && session.playing && answered && form == bedrock_market_sell_form)
+		{
+			bedrock_market.sell(session, data);
+		}
+
+		else if (in.good() && session.playing && form == session.player.menu)
 		{
 			npc.choose(session.player, button);
 			session.player.menu = 0u;
