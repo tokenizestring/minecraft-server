@@ -1,0 +1,23 @@
+# crop block max_age stage_ticks state_26_2 state_26_3 legacy_block legacy_max soil seed produce min max trials extra min max trials probability
+crop minecraft:wheat 7 4096 5311 6867 59 7 minecraft:farmland minecraft:wheat_seeds minecraft:wheat 1 1 0 minecraft:wheat_seeds 1 1 3 0.5714286
+crop minecraft:carrots 7 4096 10659 12402 141 7 minecraft:farmland minecraft:carrot minecraft:carrot 2 2 3 - 0 0 0 0.5714286
+crop minecraft:potatoes 7 4096 10667 12410 142 7 minecraft:farmland minecraft:potato minecraft:potato 2 2 3 - 0 0 0 0.5714286
+crop minecraft:beetroots 3 6144 14811 16792 59 7 minecraft:farmland minecraft:beetroot_seeds minecraft:beetroot 1 1 0 minecraft:beetroot_seeds 1 1 3 0.5714286
+crop minecraft:nether_wart 3 13653 9447 11181 115 3 minecraft:soul_sand minecraft:nether_wart minecraft:nether_wart 2 4 0 - 0 0 0 0.0000000
+# till block result
+till minecraft:grass_block minecraft:farmland
+till minecraft:dirt_path minecraft:farmland
+till minecraft:dirt minecraft:farmland
+till minecraft:coarse_dirt minecraft:dirt
+till minecraft:rooted_dirt minecraft:dirt
+# chance block item chance
+chance minecraft:fern minecraft:wheat_seeds 0.1250
+chance minecraft:short_grass minecraft:wheat_seeds 0.1250
+# hoe item
+hoe minecraft:wooden_hoe
+hoe minecraft:copper_hoe
+hoe minecraft:stone_hoe
+hoe minecraft:golden_hoe
+hoe minecraft:iron_hoe
+hoe minecraft:diamond_hoe
+hoe minecraft:netherite_hoe
