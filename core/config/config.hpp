@@ -25,6 +25,8 @@ namespace mc
 		std::uint64_t chat_fade_ms{ 15000ui64 };
 		std::uint32_t view_distance{ 6u };
 		std::uint32_t chunk_cache_mb{ 32u };
+		std::uint32_t chunk_threads{ 0u };
+		std::uint32_t chunk_budget{ 8u };
 		std::string operators;
 		std::uint64_t smp_seed{ 0ui64 };
 

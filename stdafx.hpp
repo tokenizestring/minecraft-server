@@ -27,6 +27,10 @@
 #include <string_view>
 #include <vector>
 #include <deque>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <unordered_set>
 #include <map>
 #include <set>
 #include <unordered_map>
@@ -41,11 +45,16 @@
 #include "core/engine/engine.hpp"
 #include "core/config/config.hpp"
 #include "core/zlib/zlib.hpp"
+#include "core/deflate/deflate.hpp"
 #include "core/network/network.hpp"
 
 #include "game/world/world.hpp"
 #include "game/terrain/terrain.hpp"
+#include "game/blocks/blocks.hpp"
 #include "game/light/light.hpp"
+#include "game/caverns/caverns.hpp"
+#include "game/features/features.hpp"
+#include "game/flora/flora.hpp"
 #include "game/generator/generator.hpp"
 #include "game/chat/chat.hpp"
 #include "game/npc/npc.hpp"
@@ -53,6 +62,7 @@
 
 #include "java/registry/java_registry.hpp"
 #include "java/protocol/java_protocol.hpp"
+#include "java/builder/java_builder.hpp"
 #include "java/chunk/java_chunk.hpp"
 #include "java/play/java_play.hpp"
 #include "java/player/java_player.hpp"

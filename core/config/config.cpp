@@ -77,6 +77,16 @@ namespace mc
 			chunk_cache_mb = static_cast<std::uint32_t>(read_number(value, chunk_cache_mb, 1u, 4096u));
 		}
 
+		else if (key == "chunk-threads")
+		{
+			chunk_threads = static_cast<std::uint32_t>(read_number(value, chunk_threads, 0u, 64u));
+		}
+
+		else if (key == "chunk-budget")
+		{
+			chunk_budget = static_cast<std::uint32_t>(read_number(value, chunk_budget, 1u, 256u));
+		}
+
 		else if (key == "operators")
 		{
 			operators.assign(value);
@@ -116,7 +126,10 @@ namespace mc
 			std::fprintf(file, "motd=%s\n\n", motd.c_str());
 			std::fprintf(file, "# chunks sent around each java player, and memory kept for ready-made chunks\n");
 			std::fprintf(file, "view-distance=%u\n", view_distance);
-			std::fprintf(file, "chunk-cache-mb=%u\n\n", chunk_cache_mb);
+			std::fprintf(file, "chunk-cache-mb=%u\n", chunk_cache_mb);
+			std::fprintf(file, "# threads that build chunks (0 = all cores but one), chunks sent per player per tick\n");
+			std::fprintf(file, "chunk-threads=%u\n", chunk_threads);
+			std::fprintf(file, "chunk-budget=%u\n\n", chunk_budget);
 			std::fprintf(file, "# names allowed to use /gamemode, separated by commas\n");
 			std::fprintf(file, "operators=%s\n\n", operators.c_str());
 			std::fprintf(file, "# seed of the smp world, /roll picks a new one\n");

@@ -31,15 +31,21 @@ cl.exe %CFLAGS% ^
     core\config\config.cpp ^
     core\zlib\zlib.cpp ^
     core\network\network.cpp ^
+    core\deflate\deflate.cpp ^
     game\world\world.cpp ^
     game\terrain\terrain.cpp ^
+    game\blocks\blocks.cpp ^
     game\light\light.cpp ^
+    game\caverns\caverns.cpp ^
+    game\features\features.cpp ^
+    game\flora\flora.cpp ^
     game\generator\generator.cpp ^
     game\chat\chat.cpp ^
     game\command\command.cpp ^
     game\npc\npc.cpp ^
     java\registry\java_registry.cpp ^
     java\protocol\java_protocol.cpp ^
+    java\builder\java_builder.cpp ^
     java\chunk\java_chunk.cpp ^
     java\play\java_play.cpp ^
     java\player\java_player.cpp ^
