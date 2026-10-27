@@ -174,6 +174,9 @@ def command_tree(client):
         name = ''
         if flags & 3 == 1:
             name, p = rstr(body, p)
+        if flags & 3 == 2:
+            name, p = rstr(body, p); parser, p = rvarint(body, p)
+            if parser == 5: _, p = rvarint(body, p)
         nodes.append((flags, children, name))
     root, p = rvarint(body, p)
     assert p == len(body), 'trailing bytes in commands packet'
