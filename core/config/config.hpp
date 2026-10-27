@@ -37,6 +37,7 @@ namespace mc
 		std::uint64_t rtp_radius{ 3000ui64 };
 		std::uint64_t mob_cap{ 4000ui64 };
 		std::uint64_t mob_density{ 40ui64 };
+		std::uint64_t crop_growth{ 4ui64 };
 
 	private:
 

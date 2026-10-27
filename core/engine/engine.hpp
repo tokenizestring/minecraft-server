@@ -614,8 +614,22 @@ namespace mc
 	constexpr auto edits_path = "edits.bin";
 	constexpr auto edits_temp_path = "edits.tmp";
 	constexpr std::uint32_t edits_magic = 0x45444954u;
-	constexpr std::uint32_t edits_version = 1u;
+	constexpr std::uint32_t edits_version = 2u;
+	constexpr std::uint32_t edits_first_version = 1u;
+	constexpr std::uint8_t edits_flag_growing = 1u;
 	constexpr std::size_t max_kind_name = 128u;
+	constexpr auto instant_path = "data/java/instant.txt";
+	constexpr auto crops_path = "data/java/crops.txt";
+	constexpr std::uint8_t crop_none = 0xFFu;
+	constexpr std::uint8_t soil_none = 0u;
+	constexpr std::size_t max_crops = 32u;
+	constexpr std::uint64_t ticks_per_second = 20ui64;
+	constexpr std::uint32_t crop_stamp_mask = 0xFFFFu;
+	constexpr std::uint32_t growth_never = 0xFFFFFFFFu;
+	constexpr std::uint32_t growth_wheel_size = 1024u;
+	constexpr std::uint8_t face_down = 0u;
+	constexpr std::size_t crop_row_words = 19u;
+	constexpr auto row_blanks = " \t\r\n";
 	constexpr std::uint32_t bedrock_market_buy_form = 1000u;
 	constexpr std::uint32_t bedrock_market_sell_form = 1001u;
 	constexpr std::uint32_t bedrock_market_buttons = 100u;
@@ -1486,6 +1500,7 @@ namespace mc
 		{
 			std::shared_ptr<const std::vector<std::uint8_t>> packet;
 			std::uint64_t last_use;
+			std::uint32_t expires;
 		};
 		/*
 		//=====================================================================================
@@ -1494,6 +1509,32 @@ namespace mc
 		{
 			std::uint32_t index;
 			std::uint16_t kind;
+			std::uint16_t stamp;
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct crop_s
+		{
+			std::uint16_t first;
+			std::uint8_t max_age;
+			std::uint8_t soil;
+			std::uint32_t stage_ticks;
+			std::uint16_t seed;
+			std::uint16_t produce;
+			std::uint16_t extra;
+			std::array<std::uint8_t, 3u> produce_count;
+			std::array<std::uint8_t, 3u> extra_count;
+			std::float_t probability;
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct growth_s
+		{
+			std::uint64_t key;
+			std::uint32_t index;
+			std::uint16_t stamp;
 		};
 		/*
 		//=====================================================================================
@@ -1509,6 +1550,8 @@ namespace mc
 			std::array<std::shared_ptr<const std::vector<edit_s>>, 9u> around;
 			std::shared_ptr<const std::vector<std::uint8_t>> packet;
 			std::shared_ptr<const std::array<std::int16_t, 256u>> surface;
+			std::uint32_t clock;
+			std::uint32_t expires;
 		};
 		/*
 		//=====================================================================================
@@ -1603,6 +1646,27 @@ namespace mc
 		static std::uint64_t get_time_us()
 		{
 			return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::uint32_t get_clock()
+		{
+			return static_cast<std::uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::uint16_t get_stamp(std::uint32_t clock)
+		{
+			return static_cast<std::uint16_t>(clock & crop_stamp_mask);
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::uint32_t get_edit_index(std::int32_t x, std::int32_t y, std::int32_t z)
+		{
+			return static_cast<std::uint32_t>(((y - world_min_y) * 16 + (z & 15)) * 16 + (x & 15));
 		}
 		/*
 		//=====================================================================================
@@ -2517,6 +2581,7 @@ namespace mc
 	static_assert(gen_cave_levels == 97 && gen_cave_span == 5);
 	static_assert(sizeof(std::float_t) == 4u);
 	static_assert(sizeof(std::double_t) == 8u);
+	static_assert(sizeof(structures::edit_s) == 8u && sizeof(structures::growth_s) == 16u);
 	static_assert(get_section_index(spawn_block_x, spawn_block_y, spawn_block_z) == 2940u);
 	static_assert(spawn_platform_blocks == 25);
 	static_assert(is_platform_index(get_section_index(spawn_block_x + 2, spawn_block_y, spawn_block_z - 2)) && is_platform_bedrock_index(get_bedrock_index(spawn_block_x - 2, spawn_block_y, spawn_block_z + 2)));
