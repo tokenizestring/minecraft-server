@@ -408,6 +408,16 @@ namespace mc
 	constexpr std::uint8_t v1_8_dig_finish = 2u;
 	constexpr std::uint8_t v1_8_face_none = 255u;
 	constexpr std::int32_t face_offsets[6][3] = { { 0, -1, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, { 0, 0, 1 }, { -1, 0, 0 }, { 1, 0, 0 } };
+	constexpr auto block_path_26_2 = "data/java/blocks_26_2.txt";
+	constexpr auto block_path_26_3 = "data/java/blocks_26_3.txt";
+	constexpr auto block_path_1_8 = "data/java/blocks_1_8.txt";
+	constexpr std::uint16_t placed_kind_base = 256u;
+	constexpr std::uint16_t kind_none = 0xFFFFu;
+	constexpr std::uint32_t v1_8_stone_state = 16u;
+	constexpr std::uint32_t v1_8_block_items = 256u;
+	constexpr std::uint8_t gamemode_creative = 1u;
+	constexpr std::int32_t hotbar_first_slot = 36;
+	constexpr std::uint32_t hotbar_size = 9u;
 
 	constexpr auto gen_sea_level = 62;
 	constexpr auto gen_deepslate_top = 8;
@@ -542,6 +552,9 @@ namespace mc
 			bool optional_previous_gamemode;
 			std::uint32_t direct_bits;
 			std::int32_t play_out_forget_chunk;
+			std::int32_t play_out_block_update;
+			std::int32_t play_in_set_carried_item;
+			std::int32_t play_in_set_creative_slot;
 		};
 		/*
 		//=====================================================================================
@@ -1153,6 +1166,14 @@ namespace mc
 		/*
 		//=====================================================================================
 		*/
+		struct edit_s
+		{
+			std::uint32_t index;
+			std::uint16_t kind;
+		};
+		/*
+		//=====================================================================================
+		*/
 		struct chunk_job_s
 		{
 			world_e world;
@@ -1161,6 +1182,7 @@ namespace mc
 			std::int32_t z;
 			std::uint64_t seed;
 			std::uint32_t epoch;
+			std::shared_ptr<const std::vector<edit_s>> edits;
 			std::shared_ptr<const std::vector<std::uint8_t>> packet;
 		};
 		/*
@@ -1211,6 +1233,8 @@ namespace mc
 			std::int32_t view_x;
 			std::int32_t view_z;
 			std::vector<std::uint64_t> wanted;
+			std::array<std::int32_t, hotbar_size> hotbar;
+			std::uint32_t held_slot;
 			bool compressed;
 			std::uint64_t connected_ms;
 			std::uint64_t keep_alive_sent_ms;
@@ -1838,11 +1862,11 @@ namespace mc
 			switch (family)
 			{
 			case structures::family_26_2:
-				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_move_entity_rot = 0x38,.play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3B, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x60, .play_out_transfer = 0x81, .item_path = "data/java/items_26_2.txt", .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25 };
+				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_move_entity_rot = 0x38,.play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3B, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x60, .play_out_transfer = 0x81, .item_path = "data/java/items_26_2.txt", .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x35, .play_in_set_creative_slot = 0x38 };
 				break;
 
 			case structures::family_26_3:
-				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_move_entity_rot = 0x39,.play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3C, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x62, .play_out_transfer = 0x84, .item_path = "data/java/items_26_3.txt", .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26 };
+				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_move_entity_rot = 0x39,.play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3C, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x62, .play_out_transfer = 0x84, .item_path = "data/java/items_26_3.txt", .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x36, .play_in_set_creative_slot = 0x39 };
 				break;
 			}
 
@@ -2101,6 +2125,20 @@ namespace mc
 		static std::uint64_t encode_position_1_8(std::int32_t x, std::int32_t y, std::int32_t z)
 		{
 			return ((static_cast<std::uint64_t>(x) & 0x3FFFFFFui64) << 38u) | ((static_cast<std::uint64_t>(y) & 0xFFFui64) << 26u) | (static_cast<std::uint64_t>(z) & 0x3FFFFFFui64);
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::uint64_t encode_position(std::int32_t x, std::int32_t y, std::int32_t z)
+		{
+			return ((static_cast<std::uint64_t>(x) & 0x3FFFFFFui64) << 38u) | ((static_cast<std::uint64_t>(z) & 0x3FFFFFFui64) << 12u) | (static_cast<std::uint64_t>(y) & 0xFFFui64);
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::array<std::int32_t, 3u> decode_position(std::uint64_t value)
+		{
+			return { static_cast<std::int32_t>(static_cast<std::int64_t>(value) >> 38), static_cast<std::int32_t>(static_cast<std::int64_t>(value << 52u) >> 52), static_cast<std::int32_t>(static_cast<std::int64_t>(value << 26u) >> 38) };
 		}
 		/*
 		//=====================================================================================

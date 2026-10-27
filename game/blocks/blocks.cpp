@@ -34,6 +34,7 @@ namespace mc
 					ids[structures::family_1_8][count] = legacy;
 					filters[count] = static_cast<std::uint8_t>(filter);
 					fluids[count] = fluid != 0u;
+					names.emplace(std::string{ state.data(), std::strcspn(state.data(), "[") }, static_cast<std::uint16_t>(count));
 					count += 1u;
 				}
 			}
@@ -41,9 +42,11 @@ namespace mc
 			std::fclose(file);
 		}
 
+		load_placed();
+
 		if (count == structures::block_count)
 		{
-			utils::log.write(color_server, "[blocks](load) %u generated block states for 26.2, 26.3 and 1.8", count);
+			utils::log.write(color_server, "[blocks](load) %u generated block states, %zu placeable blocks for 26.2, 26.3 and 1.8", count, placed[structures::family_26_3].size());
 		}
 
 		else
@@ -61,6 +64,13 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	std::uint32_t blocks_c::get_state(structures::family_e family, std::uint16_t kind) const
+	{
+		return kind < placed_kind_base ? ids[family][kind] : placed[family][kind - placed_kind_base];
+	}
+	/*
+	//=====================================================================================
+	*/
 	std::uint8_t blocks_c::get_filter(std::uint8_t block) const
 	{
 		return filters[block];
@@ -71,6 +81,131 @@ namespace mc
 	bool blocks_c::is_fluid(std::uint8_t block) const
 	{
 		return fluids[block];
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint16_t blocks_c::find_item(structures::family_e family, std::int32_t item) const
+	{
+		return item >= 0 && static_cast<std::size_t>(item) < items[family].size() ? items[family][static_cast<std::size_t>(item)] : kind_none;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint16_t blocks_c::find_item_1_8(std::int32_t item, std::int32_t damage) const
+	{
+		auto kind{ kind_none };
+
+		if (auto found{ items_1_8.find((static_cast<std::uint32_t>(item) << 4u) | (static_cast<std::uint32_t>(damage) & 15u)) }; found != items_1_8.end())
+		{
+			kind = found->second;
+		}
+
+		else if (auto plain{ items_1_8.find(static_cast<std::uint32_t>(item) << 4u) }; plain != items_1_8.end())
+		{
+			kind = plain->second;
+		}
+
+		return kind;
+	}
+	/*
+	//=====================================================================================
+	*/
+	void blocks_c::load_placed()
+	{
+		std::unordered_map<std::string, std::uint32_t> lookup_26_2{};
+		std::unordered_map<std::string, std::uint32_t> lookup_1_8{};
+		auto legacy_items{ read_table(v1_8_item_path, true) };
+
+		for (const auto& [name, id] : read_table(block_path_26_2, false))
+		{
+			lookup_26_2.emplace(name, id);
+		}
+
+		for (const auto& [name, state] : read_table(block_path_1_8, true))
+		{
+			lookup_1_8.emplace(name, state);
+		}
+
+		for (const auto& [name, state] : legacy_items)
+		{
+			if ((state >> 4u) < v1_8_block_items)
+			{
+				lookup_1_8.emplace(name, state);
+			}
+		}
+
+		for (const auto& [name, id] : read_table(block_path_26_3, false))
+		{
+			auto found_26_2{ lookup_26_2.find(name) };
+			auto found_1_8{ lookup_1_8.find(name) };
+
+			names.emplace(name, static_cast<std::uint16_t>(placed_kind_base + placed[structures::family_26_3].size()));
+			placed[structures::family_26_3].push_back(id);
+			placed[structures::family_26_2].push_back(found_26_2 != lookup_26_2.end() ? found_26_2->second : ids[structures::family_26_2][structures::block_stone]);
+			placed[structures::family_1_8].push_back(found_1_8 != lookup_1_8.end() ? found_1_8->second : v1_8_stone_state);
+		}
+
+		for (auto family : { structures::family_26_2, structures::family_26_3 })
+		{
+			for (const auto& [name, index] : read_table(functions::get_layout(family).item_path, false))
+			{
+				items[family].resize(std::max<std::size_t>(items[family].size(), index + 1u), kind_none);
+				items[family][index] = find_name(name);
+			}
+		}
+
+		for (const auto& [name, state] : legacy_items)
+		{
+			items_1_8.emplace(state, find_name(name));
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint16_t blocks_c::find_name(const std::string& name) const
+	{
+		auto found{ names.find(name) };
+		return found != names.end() && name != "minecraft:air" ? found->second : kind_none;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::vector<std::pair<std::string, std::uint32_t>> blocks_c::read_table(const char* path, bool legacy)
+	{
+		std::vector<std::pair<std::string, std::uint32_t>> table{};
+
+		if (auto file{ std::fopen(functions::get_local_path(path).c_str(), "rb") }; file)
+		{
+			std::array<char, 256u> line{};
+			std::array<char, 128u> name{};
+
+			while (std::fgets(line.data(), static_cast<std::int32_t>(line.size()), file))
+			{
+				std::uint32_t id{};
+				std::uint32_t meta{};
+				auto fields{ std::sscanf(line.data(), "%127s %u %u", name.data(), &id, &meta) };
+
+				if (fields == 3 && legacy)
+				{
+					table.emplace_back(name.data(), (id << 4u) | (meta & 15u));
+				}
+
+				else if (fields == 2)
+				{
+					table.emplace_back(name.data(), id);
+				}
+
+				else if (fields == 1)
+				{
+					table.emplace_back(name.data(), static_cast<std::uint32_t>(table.size()));
+				}
+			}
+
+			std::fclose(file);
+		}
+
+		return table;
 	}
 }
 
