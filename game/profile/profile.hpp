@@ -17,6 +17,16 @@ namespace mc
 		void load(structures::player_s& player) const;
 		void save(const structures::player_s& player) const;
 		void credit(std::string_view name, std::int64_t amount) const;
+
+		template <typename change_t>
+		void edit(std::string_view name, change_t change) const
+		{
+			structures::player_s offline{};
+			offline.name.assign(name);
+			load(offline);
+			change(offline);
+			save(offline);
+		}
 		void tick(std::uint64_t now);
 		void save_all() const;
 

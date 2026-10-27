@@ -22,6 +22,7 @@ namespace mc
 		player.balance = static_cast<std::int64_t>(config.start_balance);
 		player.inventory = {};
 		player.cursor = {};
+		player.friends.clear();
 
 		if (auto file{ std::fopen(get_path(player.name).c_str(), "rb") }; file)
 		{
@@ -37,6 +38,11 @@ namespace mc
 				if (std::sscanf(line.data(), "balance %lld", &balance) == 1)
 				{
 					player.balance = balance;
+				}
+
+				else if (std::sscanf(line.data(), "friend %127[^\r\n]", name.data()) == 1 && player.friends.size() < max_friends)
+				{
+					player.friends.emplace_back(name.data());
 				}
 
 				else if (std::sscanf(line.data(), "slot %u %127s %u", &slot, name.data(), &count) == 3 && slot < inventory_size && count)
@@ -64,6 +70,11 @@ namespace mc
 				{
 					std::fprintf(file, "slot %u %s %u\n", slot, items.get_name(player.inventory[slot].item).c_str(), static_cast<std::uint32_t>(player.inventory[slot].count));
 				}
+			}
+
+			for (const auto& name : player.friends)
+			{
+				std::fprintf(file, "friend %s\n", name.c_str());
 			}
 
 			std::fclose(file);
@@ -106,10 +117,7 @@ namespace mc
 	{
 		for (auto player : world.get_players())
 		{
-			if (player->npc == false)
-			{
-				save(*player);
-			}
+			save(*player);
 		}
 	}
 	/*
@@ -121,7 +129,7 @@ namespace mc
 
 		for (auto player : world.get_players())
 		{
-			found = found == nullptr && !player->npc && player->name == name ? player : found;
+			found = found == nullptr && player->name == name ? player : found;
 		}
 
 		return found;
