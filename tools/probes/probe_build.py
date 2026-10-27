@@ -102,8 +102,17 @@ check('glass reaches 1.8', updates(w8, 0x23, pos18(*glass)) == [20 << 4], update
 b.send(sb3['player_action'], varint(0) + pos(*stone) + b'\x01' + varint(10)); time.sleep(0.5)
 check('creative break turns the stone to air for everyone', updates(b, cb3['block_update'], pos(*stone))[-1:] == [0] and updates(w2, cb2['block_update'], pos(*stone))[-1:] == [0] and updates(w8, 0x23, pos18(*stone))[-1:] == [0], None)
 
-w8.send(0x08, pos18(sx + 1, sy + 2, sz - 2) + b'\x01' + struct.pack('>hbhb', 1, 1, 0, 0) + b'\x08\x10\x08'); time.sleep(0.5)
-check('1.8 placing stone reaches 26.3', updates(b, cb3['block_update'], pos(sx + 1, sy + 3, sz - 2)) == [states_26_3['minecraft:stone']], updates(b, cb3['block_update'], pos(sx + 1, sy + 3, sz - 2)))
+w8.send(0x09, struct.pack('>H', 0))
+for depth in range(1, 20):
+    with w8.lock: w8.log.clear()
+    w8.send(0x07, b'\x00' + pos18(sx + 3, sy - depth, sz + 3) + b'\x01')
+    w8.send(0x07, b'\x02' + pos18(sx + 3, sy - depth, sz + 3) + b'\x01'); time.sleep(0.3)
+    with w8.lock: got = [x for p, x in w8.log if p == 0x30 and x[0] == 0]
+    if got: break
+check('1.8 survival mining fills the inventory', bool(got), depth)
+w8.send(0x08, pos18(sx + 1, sy + 2, sz - 2) + b'\x01' + struct.pack('>hbhb', 3, 1, 0, 0) + b'\x08\x10\x08'); time.sleep(0.5)
+placed18 = updates(b, cb3['block_update'], pos(sx + 1, sy + 3, sz - 2))
+check('1.8 placing its mined block reaches 26.3', len(placed18) == 1 and placed18[0] != 0, placed18)
 
 f = Java('FreshBuild', 777); f.join(); time.sleep(0.5)
 with f.lock: f.log.clear()
@@ -117,7 +126,7 @@ def block_at(x, y, z):
     return found[(x >> 4, z >> 4)][(y + 64) >> 4][(y & 15) * 256 + (z & 15) * 16 + (x & 15)]
 check('a new player gets the glass baked into the chunk', block_at(*glass) == states_26_3['minecraft:glass'], block_at(*glass))
 check('and the broken stone stays air', block_at(*stone) == 0, block_at(*stone))
-check('and the 1.8 stone', block_at(sx + 1, sy + 3, sz - 2) == states_26_3['minecraft:stone'], block_at(sx + 1, sy + 3, sz - 2))
+check('and the 1.8 block', placed18 and block_at(sx + 1, sy + 3, sz - 2) == placed18[0], block_at(sx + 1, sy + 3, sz - 2))
 
 for x in (b, w2, w8, f): x.close()
 print('failures:', fails)
