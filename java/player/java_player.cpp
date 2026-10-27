@@ -178,43 +178,6 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	void java_player_c::look(structures::client_s& viewer, const structures::player_s& subject, std::float_t yaw, std::float_t pitch)
-	{
-		packet.clear();
-
-		if (functions::is_modern(viewer.family))
-		{
-			functions::write_varint(packet, viewer.layout.play_out_move_entity_rot);
-			functions::write_varint(packet, subject.entity_id);
-			functions::write_u8(packet, functions::get_angle_byte(yaw));
-			functions::write_u8(packet, functions::get_angle_byte(pitch));
-			functions::write_bool(packet, true);
-			network.send(viewer, packet);
-
-			packet.clear();
-			functions::write_varint(packet, viewer.layout.play_out_rotate_head);
-		}
-
-		else
-		{
-			functions::write_varint(packet, v1_8_play_out_entity_look);
-			functions::write_varint(packet, subject.entity_id);
-			functions::write_u8(packet, functions::get_angle_byte(yaw));
-			functions::write_u8(packet, functions::get_angle_byte(pitch));
-			functions::write_bool(packet, true);
-			network.send(viewer, packet);
-
-			packet.clear();
-			functions::write_varint(packet, v1_8_play_out_head_look);
-		}
-
-		functions::write_varint(packet, subject.entity_id);
-		functions::write_u8(packet, functions::get_angle_byte(yaw));
-		network.send(viewer, packet);
-	}
-	/*
-	//=====================================================================================
-	*/
 	void java_player_c::set_gamemode(structures::client_s& client, std::uint8_t mode)
 	{
 		packet.clear();
