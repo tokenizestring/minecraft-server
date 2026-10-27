@@ -40,11 +40,11 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	void market_c::sell(structures::player_s& player, std::string_view argument)
+	void market_c::sell(structures::player_s& player, std::uint32_t slot, std::string_view argument)
 	{
 		std::uint64_t price{};
 		auto [end, error]{ std::from_chars(argument.data(), argument.data() + argument.size(), price) };
-		auto& stack{ player.inventory[player.held_slot] };
+		auto& stack{ player.inventory[slot] };
 		auto owned{ std::count_if(listings.begin(), listings.end(), [&player](const auto& listing) { return listing.seller == player.name; }) };
 
 		if (error != std::errc{} || price == 0u || price > config.max_price)

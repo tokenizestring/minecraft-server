@@ -14,7 +14,7 @@ namespace mc
 	public:
 
 		void load();
-		void sell(structures::player_s& player, std::string_view argument);
+		void sell(structures::player_s& player, std::uint32_t slot, std::string_view argument);
 		void buy(structures::player_s& player, std::uint32_t id);
 		std::vector<const structures::listing_s*> filter(std::string_view text) const;
 		const structures::listing_s* find(std::uint32_t id) const;
