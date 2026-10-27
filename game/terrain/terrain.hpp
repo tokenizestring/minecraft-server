@@ -21,6 +21,7 @@ namespace mc
 		std::uint32_t get_block(const structures::terrain_section_s& section, std::uint32_t index) const;
 		bool is_solid(const structures::terrain_section_s& section, std::uint32_t index) const;
 		bool is_solid_at(std::int32_t x, std::int32_t y, std::int32_t z) const;
+		bool is_air_at(std::int32_t x, std::int32_t y, std::int32_t z) const;
 
 	private:
 
