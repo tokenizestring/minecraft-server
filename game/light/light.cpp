@@ -43,6 +43,14 @@ namespace mc
 	*/
 	std::uint32_t light_c::compute_generated(const std::uint8_t* column, std::int32_t highest, const around_t& around)
 	{
+		for (const auto* list : around)
+		{
+			for (const auto& edit : list ? *list : no_edits)
+			{
+				highest = blocks.get_emission(edit.kind) ? std::max(highest, static_cast<std::int32_t>(edit.index >> 8u) + world_min_y) : highest;
+			}
+		}
+
 		auto count{ highest >= world_min_y ? std::min(static_cast<std::uint32_t>(((highest - world_min_y) >> 4) + 2), modern_section_count) : 0u };
 
 		if (count)

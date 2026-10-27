@@ -81,11 +81,6 @@ namespace mc
 		{
 			subject->moved = false;
 
-			if (subject->world == structures::world_spawn)
-			{
-				npc.look(*subject);
-			}
-
 			for (auto viewer : players | std::views::filter([subject](auto other) { return other != subject && other->world == subject->world; }))
 			{
 				move(*viewer, *subject);
@@ -100,7 +95,7 @@ namespace mc
 		{
 			for (auto player : players)
 			{
-				if (player->edition == structures::edition_java && player->npc == false)
+				if (player->edition == structures::edition_java)
 				{
 					java_play.send_time(*static_cast<structures::client_s*>(player->link));
 				}
@@ -159,11 +154,6 @@ namespace mc
 			spawn(*other, player, true);
 			spawn(player, *other, true);
 		}
-
-		if (player.world == structures::world_spawn)
-		{
-			npc.show(player);
-		}
 	}
 	/*
 	//=====================================================================================
@@ -174,11 +164,6 @@ namespace mc
 		{
 			despawn(*other, player);
 			despawn(player, *other);
-		}
-
-		if (player.world == structures::world_spawn)
-		{
-			npc.hide(player);
 		}
 	}
 	/*
