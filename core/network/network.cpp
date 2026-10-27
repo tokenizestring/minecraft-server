@@ -76,7 +76,8 @@ namespace mc
 				chat.tick(now);
 				profile.tick(now);
 				edits.tick(now);
-				next_tick = now + tick_ms;
+				drops.tick();
+				next_tick = std::max(next_tick + tick_ms, now);
 			}
 
 			raknet.flush();
