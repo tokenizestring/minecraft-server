@@ -36,6 +36,7 @@ namespace mc
 			utils::log.write(color_server, "[config](create) '%s' with defaults", config_file_name);
 		}
 
+		smp_seed = smp_seed ? smp_seed : functions::make_seed();
 		save(path);
 
 		utils::log.write(color_server, "[config] java port %u, bedrock port %u, max players %u, view distance %u, chunk cache %u mb, chat lines %u, chat fade %llu s", java_port, bedrock_port, max_players, view_distance, chunk_cache_mb, chat_lines, chat_fade_ms / 1000ui64);
@@ -81,6 +82,11 @@ namespace mc
 			operators.assign(value);
 		}
 
+		else if (key == "smp-seed")
+		{
+			smp_seed = read_number(value, smp_seed, 1u, 0x7FFFFFFFFFFFFFFFui64);
+		}
+
 		else if (key == "chat-lines")
 		{
 			chat_lines = static_cast<std::uint32_t>(read_number(value, chat_lines, 1u, max_chat_lines));
@@ -113,11 +119,20 @@ namespace mc
 			std::fprintf(file, "chunk-cache-mb=%u\n\n", chunk_cache_mb);
 			std::fprintf(file, "# names allowed to use /gamemode, separated by commas\n");
 			std::fprintf(file, "operators=%s\n\n", operators.c_str());
+			std::fprintf(file, "# seed of the smp world, /roll picks a new one\n");
+			std::fprintf(file, "smp-seed=%llu\n\n", smp_seed);
 			std::fprintf(file, "# chat sidebar: lines shown (1-15) and seconds before a line fades\n");
 			std::fprintf(file, "chat-lines=%u\n", chat_lines);
 			std::fprintf(file, "chat-fade-seconds=%llu\n", chat_fade_ms / 1000ui64);
 			std::fclose(file);
 		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void config_c::store() const
+	{
+		save(functions::get_local_path(config_file_name));
 	}
 	/*
 	//=====================================================================================

@@ -14,6 +14,7 @@ namespace mc
 	public:
 
 		void load();
+		void store() const;
 		bool is_operator(std::string_view name) const;
 
 		std::uint16_t java_port{ 25565u };
@@ -25,6 +26,7 @@ namespace mc
 		std::uint32_t view_distance{ 6u };
 		std::uint32_t chunk_cache_mb{ 32u };
 		std::string operators;
+		std::uint64_t smp_seed{ 0ui64 };
 
 	private:
 

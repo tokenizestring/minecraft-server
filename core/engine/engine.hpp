@@ -343,6 +343,9 @@ namespace mc
 	constexpr std::uint8_t gamemode_survival = 0u;
 	constexpr auto gamemode_command = "gamemode";
 	constexpr auto gamemode_alias = "gm";
+	constexpr auto smp_command = "smp";
+	constexpr auto spawn_command = "spawn";
+	constexpr auto roll_command = "roll";
 	constexpr const char* gamemode_arguments[] = { "survival", "creative", "adventure", "spectator", "0", "1", "2", "3" };
 	constexpr const char* gamemode_names[] = { "survival", "creative", "adventure", "spectator" };
 	constexpr std::uint8_t modern_game_event_change_mode = 3u;
@@ -361,6 +364,40 @@ namespace mc
 	constexpr std::uint32_t npc_angle_sent = 0x10000u;
 	constexpr auto degrees_per_radian = 57.29577951308232;
 	constexpr std::int32_t v1_8_play_out_entity_look = 0x16;
+
+	constexpr const char* block_names[] = { "minecraft:air", "minecraft:stone", "minecraft:deepslate", "minecraft:dirt", "minecraft:grass_block", "minecraft:sand", "minecraft:sandstone", "minecraft:gravel", "minecraft:water", "minecraft:lava", "minecraft:bedrock", "minecraft:snow_block", "minecraft:snow", "minecraft:ice", "minecraft:oak_log", "minecraft:oak_leaves", "minecraft:spruce_log", "minecraft:spruce_leaves", "minecraft:birch_log", "minecraft:birch_leaves", "minecraft:coal_ore", "minecraft:iron_ore", "minecraft:copper_ore", "minecraft:gold_ore", "minecraft:diamond_ore", "minecraft:deepslate_coal_ore", "minecraft:deepslate_iron_ore", "minecraft:deepslate_copper_ore", "minecraft:deepslate_gold_ore", "minecraft:deepslate_diamond_ore", "minecraft:short_grass", "minecraft:dandelion", "minecraft:poppy", "minecraft:cactus", "minecraft:dead_bush", "minecraft:clay" };
+	constexpr std::uint8_t block_light_filters[] = { 0u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 1u, 15u, 15u, 15u, 0u, 1u, 15u, 1u, 15u, 1u, 15u, 1u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 0u, 0u, 0u, 0u, 0u, 15u };
+	constexpr bool block_fluids[] = { false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false };
+	constexpr const char* world_names[] = { "spawn", "smp" };
+	constexpr std::double_t world_rescue_heights[] = { -32.0, -80.0 };
+	constexpr auto java_block_path_26_2 = "data/java/blocks_26_2.txt";
+	constexpr auto java_block_path_26_3 = "data/java/blocks_26_3.txt";
+	constexpr auto java_block_path_1_8 = "data/java/blocks_1_8.txt";
+	constexpr auto world_min_y = -64;
+	constexpr auto world_height = 384;
+	constexpr auto column_volume = 16u * 16u * 384u;
+	constexpr auto smp_sea_level = 63;
+	constexpr auto smp_spawn_search = 256;
+	constexpr auto smp_cave_floor = -58;
+	constexpr auto smp_lava_level = -54;
+	constexpr std::uint32_t biome_ocean = 0u;
+	constexpr std::uint32_t biome_beach = 1u;
+	constexpr std::uint32_t biome_plains = 2u;
+	constexpr std::uint32_t biome_forest = 3u;
+	constexpr std::uint32_t biome_desert = 4u;
+	constexpr std::uint32_t biome_snowy = 5u;
+	constexpr std::uint32_t biome_mountain = 6u;
+	constexpr std::uint32_t biome_tree_counts[] = { 0u, 0u, 1u, 8u, 0u, 3u, 1u };
+	constexpr std::double_t noise_gradients_2d[8][2] = { { 1.0, 0.0 }, { -1.0, 0.0 }, { 0.0, 1.0 }, { 0.0, -1.0 }, { 0.7071, 0.7071 }, { -0.7071, 0.7071 }, { 0.7071, -0.7071 }, { -0.7071, -0.7071 } };
+	constexpr std::double_t noise_gradients_3d[16][3] = { { 1, 1, 0 }, { -1, 1, 0 }, { 1, -1, 0 }, { -1, -1, 0 }, { 1, 0, 1 }, { -1, 0, 1 }, { 1, 0, -1 }, { -1, 0, -1 }, { 0, 1, 1 }, { 0, -1, 1 }, { 0, 1, -1 }, { 0, -1, -1 }, { 1, 1, 0 }, { -1, 1, 0 }, { 0, -1, 1 }, { 0, -1, -1 } };
+	constexpr std::uint32_t ore_blocks[] = { 20u, 21u, 22u, 23u, 24u };
+	constexpr std::uint32_t ore_veins[] = { 18u, 10u, 8u, 3u, 2u };
+	constexpr std::uint32_t ore_sizes[] = { 9u, 7u, 7u, 6u, 5u };
+	constexpr std::int32_t ore_bottoms[] = { 0, -24, -8, -60, -60 };
+	constexpr std::int32_t ore_tops[] = { 128, 72, 96, 32, 12 };
+	constexpr auto deepslate_ore_offset = 5u;
+	constexpr auto v1_8_section_offset = 4u;
+	constexpr auto v1_8_section_count = 16u;
 	constexpr auto max_menu_rows = 6u;
 	constexpr auto menu_window_id = 7u;
 	constexpr std::int32_t modern_component_item_name = 9;
@@ -594,6 +631,58 @@ namespace mc
 		/*
 		//=====================================================================================
 		*/
+		enum world_e : std::uint32_t
+		{
+			world_spawn,
+			world_smp,
+			world_count
+		};
+		/*
+		//=====================================================================================
+		*/
+		enum block_e : std::uint8_t
+		{
+			block_air,
+			block_stone,
+			block_deepslate,
+			block_dirt,
+			block_grass,
+			block_sand,
+			block_sandstone,
+			block_gravel,
+			block_water,
+			block_lava,
+			block_bedrock,
+			block_snow_block,
+			block_snow,
+			block_ice,
+			block_oak_log,
+			block_oak_leaves,
+			block_spruce_log,
+			block_spruce_leaves,
+			block_birch_log,
+			block_birch_leaves,
+			block_coal_ore,
+			block_iron_ore,
+			block_copper_ore,
+			block_gold_ore,
+			block_diamond_ore,
+			block_deepslate_coal_ore,
+			block_deepslate_iron_ore,
+			block_deepslate_copper_ore,
+			block_deepslate_gold_ore,
+			block_deepslate_diamond_ore,
+			block_short_grass,
+			block_dandelion,
+			block_poppy,
+			block_cactus,
+			block_dead_bush,
+			block_clay,
+			block_count
+		};
+		/*
+		//=====================================================================================
+		*/
 		struct skin_s
 		{
 			std::string id;
@@ -629,12 +718,23 @@ namespace mc
 			std::uint8_t gamemode;
 			bool npc;
 			std::array<std::uint32_t, max_npcs> npc_angles;
+			world_e world;
 			std::uint32_t menu;
 			std::int32_t menu_state;
 			edition_e edition;
 			std::int32_t platform;
 			void* link;
 			std::shared_ptr<const skin_s> skin;
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct spawn_s
+		{
+			std::double_t x;
+			std::double_t y;
+			std::double_t z;
+			std::float_t yaw;
 		};
 		/*
 		//=====================================================================================
@@ -831,6 +931,19 @@ namespace mc
 		static std::uint64_t get_time_ms()
 		{
 			return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::uint64_t make_seed()
+		{
+			LARGE_INTEGER counter{};
+			QueryPerformanceCounter(&counter);
+			auto value{ static_cast<std::uint64_t>(counter.QuadPart) ^ (static_cast<std::uint64_t>(std::time(nullptr)) << 32u) ^ 0x9E3779B97F4A7C15ui64 };
+			value = (value ^ (value >> 30u)) * 0xBF58476D1CE4E5B9ui64;
+			value = (value ^ (value >> 27u)) * 0x94D049BB133111EBui64;
+
+			return (value ^ (value >> 31u)) & 0x7FFFFFFFFFFFFFFFui64;
 		}
 		/*
 		//=====================================================================================
@@ -1667,6 +1780,7 @@ namespace mc
 	}
 
 	static_assert(std::size(known_protocols) == std::size(known_names));
+	static_assert(std::size(block_names) == structures::block_count && std::size(block_light_filters) == structures::block_count && std::size(block_fluids) == structures::block_count);
 	static_assert(sizeof(std::float_t) == 4u);
 	static_assert(sizeof(std::double_t) == 8u);
 	static_assert(get_section_index(spawn_block_x, spawn_block_y, spawn_block_z) == 2940u);
