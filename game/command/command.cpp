@@ -56,20 +56,25 @@ namespace mc
 			chat.notify(player, "you are not an operator");
 		}
 
-		else if ((name == balance_command || name == balance_alias) && player.edition == structures::edition_java)
+		else if (name == balance_command || name == balance_alias)
 		{
 			chat.notify(player, "balance " + std::to_string(player.balance));
 		}
 
-		else if (name == pay_command && player.edition == structures::edition_java)
+		else if (name == pay_command)
 		{
 			pay(player, argument);
 		}
 
 		else if (name == sell_command && player.edition == structures::edition_java)
 		{
-			market.sell(player, argument);
+			market.sell(player, player.held_slot, argument);
 			java_inventory.send_slot(*static_cast<structures::client_s*>(player.link), player.held_slot);
+		}
+
+		else if (name == sell_command)
+		{
+			bedrock_market.open_sell(*static_cast<structures::session_s*>(player.link));
 		}
 
 		else if (name == buy_command && player.edition == structures::edition_java)
@@ -77,9 +82,9 @@ namespace mc
 			java_market.open(*static_cast<structures::client_s*>(player.link), argument);
 		}
 
-		else if (name == balance_command || name == balance_alias || name == pay_command || name == sell_command || name == buy_command)
+		else if (name == buy_command)
 		{
-			chat.notify(player, "the market is coming to bedrock soon");
+			bedrock_market.open_buy(*static_cast<structures::session_s*>(player.link), argument);
 		}
 
 		else
