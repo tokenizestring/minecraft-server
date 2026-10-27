@@ -252,7 +252,7 @@ def play_1_8(name):
     order = []
     while len(order) < 4:
         r = c.recv(); assert r, order
-        if r[0] in (0x38, 0x0C): continue
+        if r[0] in (0x38, 0x0C) or (r[0] == 0x21 and 0x21 in order): continue
         order.append(r[0])
         if r[0] == 0x21:
             x, z, gu, mask = struct.unpack('>ii?H', r[1][:11])

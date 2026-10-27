@@ -78,7 +78,7 @@ for protocol, tag, hit in ((777, '26_3', 'attack'), (776, '26_2', 'interact')):
     closes = [b for p, b in log if p == cb['container_close']]
     notes = [b for p, b in log if p == cb['system_chat']]
     check('%s clicking survival closes the menu' % tag, closes == [b'\x07'], closes)
-    check('%s and runs its action' % tag, any(b'the smp world is opening soon' in n for n in notes), notes)
+    check('%s and runs its action (sends you to the smp)' % tag, any(b'welcome to smp' in n for n in notes), notes)
     check('%s menu restored and cursor cleared' % tag, any(p == cb['container_set_content'] for p, b in log) and any(p == cb['set_cursor_item'] and b == b'\x00' for p, b in log))
     c.close()
 
