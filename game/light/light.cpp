@@ -33,19 +33,57 @@ namespace mc
 		{
 			load_filters(chunk_x, chunk_z, count * 16u);
 			spread(count * 16u);
-			nibbles.assign(static_cast<std::size_t>(count) * light_array_size, 0u);
-
-			for (auto section{ 0u }; section < count; ++section)
-			{
-				for (auto index{ 0u }; index < section_volume; ++index)
-				{
-					auto cell{ ((section * 16u + (index >> 8u)) * light_region + ((index >> 4u) & 15u) + light_border) * light_region + (index & 15u) + light_border };
-					nibbles[section * light_array_size + index / 2u] |= static_cast<std::uint8_t>(levels[cell] << ((index & 1u) * 4u));
-				}
-			}
+			pack(count);
 		}
 
 		return count;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint32_t light_c::compute_generated(const std::uint8_t* blocks, std::int32_t highest)
+	{
+		auto count{ highest >= world_min_y ? static_cast<std::uint32_t>(((highest - world_min_y) >> 4) + 1) : 0u };
+
+		if (count)
+		{
+			filters.resize(static_cast<std::size_t>(count) * 16u * light_region * light_region);
+
+			for (auto y{ 0u }; y < count * 16u; ++y)
+			{
+				for (auto z{ 0u }; z < light_region; ++z)
+				{
+					auto source_z{ std::clamp(static_cast<std::int32_t>(z) - static_cast<std::int32_t>(light_border), 0, 15) };
+
+					for (auto x{ 0u }; x < light_region; ++x)
+					{
+						auto source_x{ std::clamp(static_cast<std::int32_t>(x) - static_cast<std::int32_t>(light_border), 0, 15) };
+						filters[(y * light_region + z) * light_region + x] = block_light_filters[blocks[(y * 16u + static_cast<std::uint32_t>(source_z)) * 16u + static_cast<std::uint32_t>(source_x)]];
+					}
+				}
+			}
+
+			spread(count * 16u);
+			pack(count);
+		}
+
+		return count;
+	}
+	/*
+	//=====================================================================================
+	*/
+	void light_c::pack(std::uint32_t count)
+	{
+		nibbles.assign(static_cast<std::size_t>(count) * light_array_size, 0u);
+
+		for (auto section{ 0u }; section < count; ++section)
+		{
+			for (auto index{ 0u }; index < section_volume; ++index)
+			{
+				auto cell{ ((section * 16u + (index >> 8u)) * light_region + ((index >> 4u) & 15u) + light_border) * light_region + (index & 15u) + light_border };
+				nibbles[section * light_array_size + index / 2u] |= static_cast<std::uint8_t>(levels[cell] << ((index & 1u) * 4u));
+			}
+		}
 	}
 	/*
 	//=====================================================================================
