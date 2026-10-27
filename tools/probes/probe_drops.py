@@ -44,7 +44,7 @@ m.send(sb3['set_carried_item'], struct.pack('>H', 0))
 for depth in range(1, 20):
     m.move(sx + 0.5, sy - depth + 1, sz + 0.5, 0.0)
     m.send(sb3['player_action'], varint(0) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2))
-    m.send(sb3['player_action'], varint(2) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2 + 1)); time.sleep(0.25)
+    m.send(sb3['player_action'], varint(3) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2 + 1)); time.sleep(0.25)
     if items_added(m, cb3, 72): break
 spawned = items_added(m, cb3, 72)
 check('breaking a block spawns an item entity for 26.3', len(spawned) == 1, depth)
@@ -62,7 +62,7 @@ check('and it lands in the hotbar', len(inv) >= 1)
 
 for client in (m, w2, w8):
     with client.lock: client.log.clear()
-m.send(sb3['player_action'], varint(4) + pos(0, 0, 0) + b'\x00' + varint(0)); time.sleep(0.3)
+m.send(sb3['player_action'], varint(5) + pos(0, 0, 0) + b'\x00' + varint(0)); time.sleep(0.3)
 tossed = items_added(w2, cb2, 71)
 check('pressing q throws the item where others see it', len(tossed) == 1)
 toss_id = rvarint(tossed[0], 0)[0] if tossed else None
@@ -93,7 +93,7 @@ check('1.8 q throws an item 26.3 can see', len(items_added(m, cb3, 72)) == 1)
 for client in (m, w2, w8):
     with client.lock: client.log.clear()
 m.send(sb3['chat_command'], mstr('spawn')); time.sleep(0.6)
-m.send(sb3['player_action'], varint(3) + pos(0, 0, 0) + b'\x00' + varint(0)); time.sleep(0.4)
+m.send(sb3['player_action'], varint(4) + pos(0, 0, 0) + b'\x00' + varint(0)); time.sleep(0.4)
 check('q in spawn keeps the item (no entity, hotbar resent)', not items_added(m, cb3, 72) and bodies(m, cb3['container_set_content']))
 for client in (m, w2, w8): client.close()
 print('failures:', fails)

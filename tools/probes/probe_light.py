@@ -124,7 +124,7 @@ check('switching to an empty hand turns it off', updates(b, cb2['block_update'],
 a.send(sb3['set_carried_item'], struct.pack('>H', 2)); time.sleep(0.4)
 check('a lantern lights at 15', updates(b, cb2['block_update'], *moved)[-1:] == [light26_2(15)], updates(b, cb2['block_update'], *moved))
 with a.lock: a.log.clear()
-a.send(sb3['player_action'], varint(6) + pos(0, 0, 0) + b'\x00' + varint(0)); time.sleep(0.4)
+a.send(sb3['player_action'], varint(7) + pos(0, 0, 0) + b'\x00' + varint(0)); time.sleep(0.4)
 with a.lock: swapped = [m for p, m in a.log if p == cb3['set_player_inventory']]
 check('f moves it to the offhand and it still lights', updates(b, cb2['block_update'], *moved)[-1:] == [light26_2(15)] and any(m[0] == 40 and len(m) > 2 for m in swapped) and any(m[:2] == b'\x02\x00' for m in swapped), swapped)
 a.close(); time.sleep(0.6)

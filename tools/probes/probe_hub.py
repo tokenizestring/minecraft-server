@@ -101,7 +101,7 @@ click(a, sb3, 0, 36)
 check('moving a hub item is undone', len(contents(a, cb3, 0)) == 1 and contents(a, cb3, 0)[-1][1][36] and items3[contents(a, cb3, 0)[-1][1][36][0]] == 'minecraft:compass')
 clear(a)
 a.send(sb3['set_carried_item'], struct.pack('>H', 0))
-for status in (3, 4):
+for status in (4, 5):
     clear(a)
     a.send(sb3['player_action'], varint(status) + struct.pack('>Q', 0) + b'\x00' + varint(0)); time.sleep(0.4)
     with a.lock: spawned = [b for p, b in a.log if p == cb3['add_entity']]
@@ -111,7 +111,7 @@ clear(a)
 click(a, sb3, 0, -999)
 check('dropping outside the window in spawn is undone', contents(a, cb3, 0) and items3[contents(a, cb3, 0)[-1][1][36][0]] == 'minecraft:compass')
 clear(a)
-a.send(sb3['player_action'], varint(6) + struct.pack('>Q', 0) + b'\x00' + varint(0)); time.sleep(0.4)
+a.send(sb3['player_action'], varint(7) + struct.pack('>Q', 0) + b'\x00' + varint(0)); time.sleep(0.4)
 check('f in spawn swaps nothing', contents(a, cb3, 0) and contents(a, cb3, 0)[-1][1][45] is None)
 clear(a)
 a.send(sb3['chat_command'], mstr('sell 5')); time.sleep(0.4)

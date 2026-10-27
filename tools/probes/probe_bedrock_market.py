@@ -54,7 +54,7 @@ for depth in range(1, 20):
     with s.lock: s.log.clear()
     s.move(sx + 1.5, sy - depth + 1, sz + 1.5, 0.0)
     s.send(sb3['player_action'], varint(0) + pos(sx + 1, sy - depth, sz + 1) + b'\x01' + varint(depth * 2))
-    s.send(sb3['player_action'], varint(2) + pos(sx + 1, sy - depth, sz + 1) + b'\x01' + varint(depth * 2 + 1)); time.sleep(1.0)
+    s.send(sb3['player_action'], varint(3) + pos(sx + 1, sy - depth, sz + 1) + b'\x01' + varint(depth * 2 + 1)); time.sleep(1.0)
     with s.lock: got = [x for p, x in s.log if p == cb3['container_set_content']]
     if got: break
 with s.lock: s.log.clear()

@@ -73,7 +73,7 @@ after = []
 for depth in range(1, 20):
     s.move(sx + 0.5, sy - depth + 1, sz + 0.5, 0.0)
     s.send(sb3['player_action'], varint(0) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2))
-    s.send(sb3['player_action'], varint(2) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2 + 1)); time.sleep(1.0)
+    s.send(sb3['player_action'], varint(3) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2 + 1)); time.sleep(1.0)
     after = contents(s, cb3, 0)
     if after: break
 mined = after[-1][1][36] if after else None
