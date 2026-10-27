@@ -100,9 +100,16 @@ namespace mc
 
 		if (in.good() && window == 0)
 		{
+			structures::item_stack_s thrown{};
 			auto slot_index{ inventory_c::get_slot(slot) };
-			auto handled{ (slot_index != -1 || mode == click_drag) && inventory.click(client.player, slot_index, button, mode, client.drag, client.drag_button) };
-			auto differs{ !handled || !same(carried, client.player.cursor) };
+			auto handled{ (slot_index != -1 || mode == click_drag) && inventory.click(client.player, slot_index, button, mode, client.drag, client.drag_button, thrown) };
+			auto kept{ thrown.count && drops.toss(client.player, thrown) == false };
+			auto differs{ !handled || kept || !same(carried, client.player.cursor) };
+
+			if (kept)
+			{
+				inventory.add(client.player, thrown.item, thrown.count);
+			}
 
 			for (const auto& [window_slot, stack] : claimed)
 			{
@@ -144,11 +151,17 @@ namespace mc
 
 		if (in.good() && window == 0)
 		{
+			structures::item_stack_s thrown{};
 			auto slot_index{ inventory_c::get_slot(slot) };
 
 			if (slot_index != -1 || mode == click_drag)
 			{
-				inventory.click(client.player, slot_index, button, mode, client.drag, client.drag_button);
+				inventory.click(client.player, slot_index, button, mode, client.drag, client.drag_button, thrown);
+			}
+
+			if (thrown.count && drops.toss(client.player, thrown) == false)
+			{
+				inventory.add(client.player, thrown.item, thrown.count);
 			}
 
 			send_all(client);
@@ -208,8 +221,14 @@ namespace mc
 	void java_inventory_c::drop(structures::client_s& client, bool all)
 	{
 		auto& stack{ client.player.inventory[client.player.held_slot] };
-		stack.count = all || stack.count == 0u ? 0u : static_cast<std::uint8_t>(stack.count - 1u);
-		stack.item = stack.count ? stack.item : 0u;
+		structures::item_stack_s thrown{ stack.item, static_cast<std::uint8_t>(all || stack.count == 0u ? stack.count : 1u) };
+
+		if (drops.toss(client.player, thrown))
+		{
+			stack.count = static_cast<std::uint8_t>(stack.count - thrown.count);
+			stack.item = stack.count ? stack.item : 0u;
+		}
+
 		send_slot(client, client.player.held_slot);
 	}
 	/*
