@@ -27,9 +27,9 @@ namespace mc
 			functions::read_u8(in);
 			sequence = functions::read_varint(in);
 
-			if (in.good() && smp && can_break(client, status))
+			if (in.good())
 			{
-				change(structures::world_smp, position[0], position[1], position[2], structures::block_air);
+				dig(client, status, position[0], position[1], position[2]);
 			}
 		}
 
@@ -38,11 +38,10 @@ namespace mc
 			auto hand{ functions::read_varint(in) };
 			auto position{ functions::decode_position(functions::read_u64(in)) };
 			auto face{ static_cast<std::uint32_t>(functions::read_varint(in)) };
-			auto kind{ blocks.find_item(client.family, client.hotbar[client.held_slot]) };
 
-			if (in.good() && smp && hand == 0 && face < std::size(face_offsets) && kind != kind_none)
+			if (in.good() && smp && hand == 0 && face < std::size(face_offsets))
 			{
-				change(structures::world_smp, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2], kind);
+				place(client, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2]);
 			}
 		}
 
@@ -57,46 +56,14 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	void java_block_c::handle_held(structures::client_s& client, structures::reader_s& in)
-	{
-		auto slot{ functions::read_u16(in) };
-
-		if (in.good() && slot < hotbar_size)
-		{
-			client.held_slot = slot;
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
-	void java_block_c::handle_creative(structures::client_s& client, structures::reader_s& in)
-	{
-		auto slot{ static_cast<std::int16_t>(functions::read_u16(in)) - hotbar_first_slot };
-		auto count{ functions::read_varint(in) };
-		auto item{ count > 0 ? functions::read_varint(in) : 0 };
-
-		if (in.good() && slot >= 0 && slot < static_cast<std::int32_t>(hotbar_size))
-		{
-			client.hotbar[static_cast<std::size_t>(slot)] = item;
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
 	void java_block_c::handle_dig_1_8(structures::client_s& client, structures::reader_s& in)
 	{
-		auto status{ functions::read_u8(in) };
+		auto status{ static_cast<std::int32_t>(functions::read_u8(in)) };
 		auto position{ functions::decode_position_1_8(functions::read_u64(in)) };
-		auto smp{ client.player.world == structures::world_smp };
 
-		if (in.good() && smp && can_break(client, status))
+		if (in.good())
 		{
-			change(structures::world_smp, position[0], position[1], position[2], structures::block_air);
-		}
-
-		else if (in.good() && !smp && (status == v1_8_dig_start || status == v1_8_dig_finish))
-		{
-			restore_1_8(client, position[0], position[1], position[2]);
+			dig(client, status, position[0], position[1], position[2]);
 		}
 	}
 	/*
@@ -106,27 +73,80 @@ namespace mc
 	{
 		auto position{ functions::decode_position_1_8(functions::read_u64(in)) };
 		auto face{ functions::read_u8(in) };
-		auto item{ static_cast<std::int16_t>(functions::read_u16(in)) };
-		auto count{ item >= 0 ? functions::read_u8(in) : 0u };
-		auto damage{ item >= 0 ? functions::read_u16(in) : 0u };
-		auto kind{ count ? blocks.find_item_1_8(item, damage) : kind_none };
 		auto smp{ client.player.world == structures::world_smp };
 		auto valid{ in.good() && face < std::size(face_offsets) };
 
-		if (valid && smp && kind != kind_none)
+		if (valid && smp)
 		{
-			change(structures::world_smp, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2], kind);
-		}
-
-		else if (valid && smp)
-		{
-			send_change(client, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2], structures::block_air);
+			place(client, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2]);
 		}
 
 		else if (valid)
 		{
 			restore_1_8(client, position[0], position[1], position[2]);
 			restore_1_8(client, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2]);
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_block_c::dig(structures::client_s& client, std::int32_t status, std::int32_t x, std::int32_t y, std::int32_t z)
+	{
+		auto smp{ client.player.world == structures::world_smp };
+		auto survival{ client.player.gamemode != gamemode_creative };
+
+		if (status == drop_all_status || status == drop_one_status)
+		{
+			java_inventory.drop(client, status == drop_all_status);
+		}
+
+		else if (smp && can_break(client, status) && survival)
+		{
+			auto drop{ items.get_drop(lookup.get(structures::world_smp, x, y, z)) };
+			change(structures::world_smp, x, y, z, structures::block_air);
+
+			if (drop)
+			{
+				inventory.add(client.player, drop, 1u);
+				java_inventory.send_all(client);
+			}
+		}
+
+		else if (smp && can_break(client, status))
+		{
+			change(structures::world_smp, x, y, z, structures::block_air);
+		}
+
+		else if (!smp && client.family == structures::family_1_8 && (status == v1_8_dig_start || status == v1_8_dig_finish))
+		{
+			restore_1_8(client, x, y, z);
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_block_c::place(structures::client_s& client, std::int32_t x, std::int32_t y, std::int32_t z)
+	{
+		auto& stack{ client.player.inventory[client.player.held_slot] };
+		auto kind{ stack.count ? items.get_block(stack.item) : kind_none };
+
+		if (kind != kind_none && client.player.gamemode == gamemode_creative)
+		{
+			change(structures::world_smp, x, y, z, kind);
+		}
+
+		else if (kind != kind_none)
+		{
+			change(structures::world_smp, x, y, z, kind);
+			stack.count = static_cast<std::uint8_t>(stack.count - 1u);
+			stack.item = stack.count ? stack.item : 0u;
+			java_inventory.send_slot(client, client.player.held_slot);
+		}
+
+		else
+		{
+			send_change(client, x, y, z, structures::block_air);
+			java_inventory.send_slot(client, client.player.held_slot);
 		}
 	}
 	/*

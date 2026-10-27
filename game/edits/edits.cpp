@@ -46,6 +46,23 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	std::uint16_t edits_c::find(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z) const
+	{
+		auto kind{ kind_none };
+		auto list{ get(target, x >> 4, z >> 4) };
+		auto index{ static_cast<std::uint32_t>(((y - world_min_y) * 16 + (z & 15)) * 16 + (x & 15)) };
+
+		if (list)
+		{
+			auto found{ std::find_if(list->begin(), list->end(), [index](const auto& edit) { return edit.index == index; }) };
+			kind = found != list->end() ? found->kind : kind_none;
+		}
+
+		return kind;
+	}
+	/*
+	//=====================================================================================
+	*/
 	void edits_c::clear(structures::world_e target)
 	{
 		chunks[target].clear();
