@@ -13,7 +13,7 @@ namespace mc
 	{
 		for (auto player : world.get_players())
 		{
-			auto* client{ player->edition == structures::edition_java && player->npc == false ? static_cast<structures::client_s*>(player->link) : nullptr };
+			auto* client{ player->edition == structures::edition_java ? static_cast<structures::client_s*>(player->link) : nullptr };
 
 			if (client && functions::is_modern(client->family))
 			{
@@ -37,7 +37,7 @@ namespace mc
 	*/
 	void java_glow_c::update(structures::client_s& client)
 	{
-		auto level{ config.held_light ? get_level(client.player) : 0u };
+		auto level{ config.held_light && client.player.world == structures::world_smp ? get_level(client.player) : 0u };
 		auto x{ static_cast<std::int32_t>(std::floor(client.player.x)) };
 		auto y{ static_cast<std::int32_t>(std::floor(client.player.y)) + held_light_offset };
 		auto z{ static_cast<std::int32_t>(std::floor(client.player.z)) };
@@ -70,7 +70,7 @@ namespace mc
 
 		for (auto player : world.get_players())
 		{
-			auto* viewer{ player->edition == structures::edition_java && player->npc == false ? static_cast<structures::client_s*>(player->link) : nullptr };
+			auto* viewer{ player->edition == structures::edition_java ? static_cast<structures::client_s*>(player->link) : nullptr };
 
 			if (viewer && functions::is_modern(viewer->family) && player->world == target && std::abs((x >> 4) - viewer->view_x) <= radius && std::abs((z >> 4) - viewer->view_z) <= radius)
 			{

@@ -16,8 +16,13 @@ namespace mc
 
 		if (id == client.layout.play_in_use_item)
 		{
-			functions::read_varint(in);
+			auto hand{ functions::read_varint(in) };
 			sequence = functions::read_varint(in);
+
+			if (in.good() && hand == 0 && java_inventory_c::is_hub(client))
+			{
+				hub.use(client.player);
+			}
 		}
 
 		else if (id == client.layout.play_in_player_action)
@@ -85,6 +90,12 @@ namespace mc
 		{
 			restore_1_8(client, position[0], position[1], position[2]);
 			restore_1_8(client, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2]);
+			hub.use(client.player);
+		}
+
+		else if (in.good() && java_inventory_c::is_hub(client))
+		{
+			hub.use(client.player);
 		}
 	}
 	/*

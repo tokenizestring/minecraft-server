@@ -45,6 +45,7 @@ namespace mc
 		utils::log.write(color_play, "[play](join) '%s' on '%s' entity %d at %.1f %.1f %.1f", client.name.c_str(), functions::get_version_name(client.protocol), client.entity_id, spawn_x, spawn_y, spawn_z);
 		world.add(client.player);
 		chat.join(client.player);
+		friends.joined(client.player);
 	}
 	/*
 	//=====================================================================================
@@ -128,6 +129,7 @@ namespace mc
 		java_chunk.send_view(client);
 		teleport(client);
 		send_time(client);
+		java_inventory.send_all(client);
 		world.moved(client.player);
 	}
 	/*
@@ -237,11 +239,6 @@ namespace mc
 			java_inventory.handle_creative(client, in);
 		}
 
-		else if (id == client.layout.play_in_attack || id == client.layout.play_in_interact)
-		{
-			java_menu.handle_interact(client, id, in);
-		}
-
 		else if (id == client.layout.play_in_container_click)
 		{
 			java_inventory.handle_click(client, in);
@@ -302,11 +299,6 @@ namespace mc
 		else if (id == v1_8_play_in_place)
 		{
 			java_block.handle_place_1_8(client, in);
-		}
-
-		else if (id == v1_8_play_in_use_entity)
-		{
-			java_menu.handle_use_entity_1_8(client, in);
 		}
 
 		else if (id == v1_8_play_in_click_window)

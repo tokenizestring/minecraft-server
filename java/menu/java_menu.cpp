@@ -17,14 +17,14 @@ namespace mc
 
 		for (auto family : { structures::family_26_2, structures::family_26_3, structures::family_1_8 })
 		{
-			for (const auto& entry : npc.get_npcs())
+			for (const auto& entry : hub.get_menus())
 			{
 				screens[family].push_back(render_screen(family, entry));
 				contents[family].push_back(render_content(family, entry));
 			}
 		}
 
-		utils::log.write(color_play, "[npc](build) %zu java menus, %zu / %zu / %zu items known for 26.2 / 26.3 / 1.8", npc.get_npcs().size(), items[structures::family_26_2].size(), items[structures::family_26_3].size(), items[structures::family_1_8].size());
+		utils::log.write(color_play, "[hub](build) %zu java menus, %zu / %zu / %zu items known for 26.2 / 26.3 / 1.8", hub.get_menus().size(), items[structures::family_26_2].size(), items[structures::family_26_3].size(), items[structures::family_1_8].size());
 	}
 	/*
 	//=====================================================================================
@@ -37,36 +37,12 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	void java_menu_c::handle_interact(structures::client_s& client, std::int32_t id, structures::reader_s& in)
-	{
-		auto target{ functions::read_varint(in) };
-		auto hand{ id == client.layout.play_in_interact ? functions::read_varint(in) : 0 };
-
-		if (in.good() && hand == 0)
-		{
-			npc.interact(client.player, target);
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
 	void java_menu_c::handle_close(structures::client_s& client)
 	{
 		client.player.menu = 0u;
 		client.market_open = false;
-	}
-	/*
-	//=====================================================================================
-	*/
-	void java_menu_c::handle_use_entity_1_8(structures::client_s& client, structures::reader_s& in)
-	{
-		auto target{ functions::read_varint(in) };
-		auto type{ functions::read_varint(in) };
-
-		if (in.good() && type < 2)
-		{
-			npc.interact(client.player, target);
-		}
+		client.social_open = false;
+		client.social_view.clear();
 	}
 	/*
 	//=====================================================================================
@@ -92,7 +68,7 @@ namespace mc
 	*/
 	void java_menu_c::click(structures::client_s& client, std::int32_t slot)
 	{
-		const auto& entry{ npc.get_npcs()[client.player.menu - 1u] };
+		const auto& entry{ hub.get_menus()[client.player.menu - 1u] };
 		auto chosen{ std::any_of(entry.items.begin(), entry.items.end(), [slot](const auto& item) { return static_cast<std::int32_t>(item.slot) == slot; }) };
 
 		network.send_held(client, contents[client.family][client.player.menu - 1u]);
@@ -130,14 +106,14 @@ namespace mc
 			}
 
 			network.send(client, packet);
-			npc.click(client.player, static_cast<std::uint32_t>(slot));
+			hub.click(client.player, static_cast<std::uint32_t>(slot));
 			client.player.menu = 0u;
 		}
 	}
 	/*
 	//=====================================================================================
 	*/
-	std::shared_ptr<const std::vector<std::uint8_t>> java_menu_c::render_screen(structures::family_e family, const structures::npc_s& entry)
+	std::shared_ptr<const std::vector<std::uint8_t>> java_menu_c::render_screen(structures::family_e family, const structures::menu_s& entry)
 	{
 		auto out{ std::make_shared<std::vector<std::uint8_t>>() };
 		packet.clear();
@@ -165,7 +141,7 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	std::shared_ptr<const std::vector<std::uint8_t>> java_menu_c::render_content(structures::family_e family, const structures::npc_s& entry)
+	std::shared_ptr<const std::vector<std::uint8_t>> java_menu_c::render_content(structures::family_e family, const structures::menu_s& entry)
 	{
 		auto out{ std::make_shared<std::vector<std::uint8_t>>() };
 		packet.clear();

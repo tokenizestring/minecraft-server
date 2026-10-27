@@ -24,7 +24,7 @@ namespace mc
 			functions::write_varint(packet, 0);
 			functions::write_bool(packet, false);
 			functions::write_varint(packet, 0);
-			functions::write_bool(packet, !subject.npc);
+			functions::write_bool(packet, true);
 			functions::write_varint(packet, 0);
 			functions::write_bool(packet, false);
 			functions::write_varint(packet, 0);
@@ -85,17 +85,6 @@ namespace mc
 				functions::write_u8(packet, v1_8_metadata_end);
 			}
 
-			network.send(viewer, packet);
-		}
-
-		if (entity && subject.npc && viewer.family == structures::family_1_8)
-		{
-			packet.clear();
-			functions::write_varint(packet, v1_8_play_out_player_list);
-			functions::write_varint(packet, v1_8_player_list_remove);
-			functions::write_varint(packet, 1);
-			functions::write_u64(packet, subject.uuid_high);
-			functions::write_u64(packet, subject.uuid_low);
 			network.send(viewer, packet);
 		}
 	}
