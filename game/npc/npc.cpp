@@ -234,10 +234,14 @@ namespace mc
 			std::fprintf(file, "# item=<slot>|<item id>|<name>|<lore line;lore line>|<action>\n");
 			std::fprintf(file, "# actions: message <text> | transfer <host> <port> | close\n");
 			std::fprintf(file, "# colour codes like \xC2\xA7" "a work in names, titles and lore\n\n");
-			std::fprintf(file, "npc=Servers|12.5 60 11.5 180|\xC2\xA7" "8Pick a server|3\n");
-			std::fprintf(file, "item=11|minecraft:grass_block|\xC2\xA7" "aSurvival|\xC2\xA7" "7Classic survival;\xC2\xA7" "eClick to join|message survival is coming soon\n");
-			std::fprintf(file, "item=13|minecraft:diamond_sword|\xC2\xA7" "cPvP|\xC2\xA7" "7Fight other players;\xC2\xA7" "eClick to join|message pvp is coming soon\n");
-			std::fprintf(file, "item=15|minecraft:compass|\xC2\xA7" "bLobby|\xC2\xA7" "7Back to spawn|close\n");
+			std::fprintf(file, "npc=SMP|6.5 58 -8.5 0|\xC2\xA7" "2Survival SMP|3\n");
+			std::fprintf(file, "item=11|minecraft:grass_block|\xC2\xA7" "aJoin the SMP|\xC2\xA7" "7Survive and build with friends;\xC2\xA7" "eClick to play|message the smp world is opening soon\n");
+			std::fprintf(file, "item=13|minecraft:compass|\xC2\xA7" "bRandom Teleport|\xC2\xA7" "7Start somewhere fresh;\xC2\xA7" "eClick to go|message random teleport opens with the smp\n");
+			std::fprintf(file, "item=15|minecraft:red_bed|\xC2\xA7" "dHome|\xC2\xA7" "7Back to your bed;\xC2\xA7" "eClick to go home|message homes open with the smp\n\n");
+			std::fprintf(file, "npc=Info|18.5 58 -8.5 0|\xC2\xA7" "6Server Info|3\n");
+			std::fprintf(file, "item=11|minecraft:book|\xC2\xA7" "eRules|\xC2\xA7" "7Be nice to everyone;\xC2\xA7" "7No griefing or stealing;\xC2\xA7" "7No cheats or hacked clients|message rules: be nice, no griefing, no cheating\n");
+			std::fprintf(file, "item=13|minecraft:name_tag|\xC2\xA7" "9Discord|\xC2\xA7" "7Chat with the community|message discord link coming soon\n");
+			std::fprintf(file, "item=15|minecraft:emerald|\xC2\xA7" "aStore|\xC2\xA7" "7Support the server|message store coming soon\n");
 			std::fclose(file);
 		}
 

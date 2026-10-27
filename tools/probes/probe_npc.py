@@ -12,7 +12,7 @@ def check(label, condition, detail=''):
     fails += 0 if condition else 1
 
 def npc_entity():
-    found = re.findall(r"\[npc\]\(load\) 'Servers' entity (\d+)", open(LOG, encoding='utf-8', errors='replace').read())
+    found = re.findall(r"\[npc\]\(load\) 'SMP' entity (\d+)", open(LOG, encoding='utf-8', errors='replace').read())
     return int(found[-1])
 
 def item_id(tag, name):
@@ -57,7 +57,7 @@ for protocol, tag, hit in ((777, '26_3', 'attack'), (776, '26_2', 'interact')):
     c = Java('Npc' + tag, protocol); c.join(); time.sleep(1.5)
     with c.lock: log = list(c.log)
     adds = [rvarint(b, 0)[0] for p, b in log if p == cb['add_entity']]
-    infos = [b for p, b in log if p == cb['player_info_update'] and b'Servers' in b]
+    infos = [b for p, b in log if p == cb['player_info_update'] and b'SMP' in b]
     check('%s sees the npc entity' % tag, entity in adds, adds)
     check('%s npc kept out of the tab list' % tag, infos and infos[0][-8] == 0, [i.hex()[-20:] for i in infos])
     with c.lock: c.log.clear()
@@ -69,16 +69,16 @@ for protocol, tag, hit in ((777, '26_3', 'attack'), (776, '26_2', 'interact')):
     contents = [b for p, b in log if p == cb['container_set_content']]
     check('%s %s opens the menu' % (tag, hit), len(screens) == 1 and screens[0][:2] == b'\x07\x02', [s.hex()[:20] for s in screens])
     window, count, slots = modern_slots(contents[0])
-    want = {11: item_id(tag, 'minecraft:grass_block'), 13: item_id(tag, 'minecraft:diamond_sword'), 15: item_id(tag, 'minecraft:compass')}
+    want = {11: item_id(tag, 'minecraft:grass_block'), 13: item_id(tag, 'minecraft:compass'), 15: item_id(tag, 'minecraft:red_bed')}
     check('%s menu has 27 slots with the right items' % tag, count == 27 and {k: v[0] for k, v in slots.items()} == want, slots)
-    check('%s item names and lore decoded' % tag, slots[11][1].endswith('Survival') and len(slots[11][2]) == 2, slots[11])
+    check('%s item names and lore decoded' % tag, slots[11][1].endswith('Join the SMP') and len(slots[11][2]) == 2, slots[11])
     with c.lock: c.log.clear()
     c.send(sb['container_click'], varint(7) + varint(0) + struct.pack('>hb', 11, 0) + varint(0) + varint(0) + b'\x00'); time.sleep(0.6)
     with c.lock: log = list(c.log)
     closes = [b for p, b in log if p == cb['container_close']]
     notes = [b for p, b in log if p == cb['system_chat']]
     check('%s clicking survival closes the menu' % tag, closes == [b'\x07'], closes)
-    check('%s and runs its action' % tag, any(b'survival is coming soon' in n for n in notes), notes)
+    check('%s and runs its action' % tag, any(b'the smp world is opening soon' in n for n in notes), notes)
     check('%s menu restored and cursor cleared' % tag, any(p == cb['container_set_content'] for p, b in log) and any(p == cb['set_cursor_item'] and b == b'\x00' for p, b in log))
     c.close()
 
@@ -108,24 +108,24 @@ for slot in range(27):
                 for _ in range(n): _, q = nbt_string(window, q)
         q += 2
         got[slot] = (item, name)
-check('1.8 chest items are grass, diamond sword, compass', {k: v[0] for k, v in got.items()} == {11: 2, 13: 276, 15: 345} and q == len(window), got)
+check('1.8 chest items are grass, compass, bed', {k: v[0] for k, v in got.items()} == {11: 2, 13: 345, 15: 355} and q == len(window), got)
 with c.lock: c.log.clear()
 c.send(0x0E, b'\x07' + struct.pack('>h', 13) + b'\x00' + struct.pack('>h', 5) + b'\x00' + struct.pack('>h', -1)); time.sleep(0.6)
 with c.lock: log = list(c.log)
-check('1.8 click is refused, chest closed and action run', any(p == 0x32 and b == b'\x07\x00\x05\x00' for p, b in log) and any(p == 0x2E for p, b in log) and any(p == 0x02 and b'pvp is coming soon' in b for p, b in log), [(hex(p), b[:24]) for p, b in log])
+check('1.8 click is refused, chest closed and action run', any(p == 0x32 and b == b'\x07\x00\x05\x00' for p, b in log) and any(p == 0x2E for p, b in log) and any(p == 0x02 and b'random teleport opens' in b for p, b in log), [(hex(p), b[:24]) for p, b in log])
 c.close()
 
 d = Bedrock('NpcBedrock'); d.join(); time.sleep(1.5)
-names = [b for b in d.packets(12) if b'Servers' in b]
+names = [b for b in d.packets(12) if b'SMP' in b]
 check('bedrock sees the npc', len(names) == 1)
 d.client.game([bp.uvarint(30) + b'\x00' + bp.uvarint(3) + bp.uvarint(0) + bp.uvarint(entity) + bp.uvarint(1) + b'\x00' * 20]); time.sleep(0.8)
 forms = d.packets(100)
 check('bedrock hitting the npc opens a form', len(forms) == 1)
 form_id, p = rvarint(forms[0], 0); text, p = rstr(forms[0], p)
 form = json.loads(text)
-check('bedrock form has the 3 servers', [b['text'].split('\n')[0][2:] for b in form['buttons']] == ['Survival', 'PvP', 'Lobby'], form)
+check('bedrock form has the 3 servers', [b['text'].split('\n')[0][2:] for b in form['buttons']] == ['Join the SMP', 'Random Teleport', 'Home'], form)
 d.client.game([bp.uvarint(101) + bp.uvarint(form_id) + b'\x01' + bp.uvarint(2) + b'1\n' + b'\x00']); time.sleep(0.8)
 tips = [b for b in d.packets(9) if b[:3] == b'\x00\x00\x05']
-check('bedrock choosing pvp runs its action', any(b'pvp is coming soon' in t for t in tips), tips)
+check('bedrock choosing random teleport runs its action', any(b'random teleport opens' in t for t in tips), tips)
 d.close()
 print('failures:', fails)
