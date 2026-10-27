@@ -107,6 +107,21 @@ namespace mc
 			max_price = read_number(value, max_price, 1u, 1000000000000ui64);
 		}
 
+		else if (key == "spawn-time")
+		{
+			spawn_time = read_number(value, spawn_time, 0u, day_length - 1u);
+		}
+
+		else if (key == "smp-day-cycle")
+		{
+			smp_day_cycle = read_number(value, smp_day_cycle, 0u, 1u);
+		}
+
+		else if (key == "held-light")
+		{
+			held_light = read_number(value, held_light, 0u, 1u);
+		}
+
 		else if (key == "chat-lines")
 		{
 			chat_lines = static_cast<std::uint32_t>(read_number(value, chat_lines, 1u, max_chat_lines));
@@ -147,6 +162,11 @@ namespace mc
 			std::fprintf(file, "# money new players start with, and the highest price allowed on /sell\n");
 			std::fprintf(file, "start-balance=%llu\n", start_balance);
 			std::fprintf(file, "max-price=%llu\n\n", max_price);
+			std::fprintf(file, "# spawn time of day (0 sunrise, 6000 noon, 13000 dusk, 18000 midnight), smp day cycle on (1) or frozen (0)\n");
+			std::fprintf(file, "spawn-time=%llu\n", spawn_time);
+			std::fprintf(file, "smp-day-cycle=%llu\n\n", smp_day_cycle);
+			std::fprintf(file, "# torches and lanterns held in either hand light up around the player (1 on, 0 off)\n");
+			std::fprintf(file, "held-light=%llu\n\n", held_light);
 			std::fprintf(file, "# chat sidebar: lines shown (1-15) and seconds before a line fades\n");
 			std::fprintf(file, "chat-lines=%u\n", chat_lines);
 			std::fprintf(file, "chat-fade-seconds=%llu\n", chat_fade_ms / 1000ui64);

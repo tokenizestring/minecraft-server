@@ -31,6 +31,9 @@ namespace mc
 		std::uint64_t smp_seed{ 0ui64 };
 		std::uint64_t start_balance{ 100ui64 };
 		std::uint64_t max_price{ 1000000000ui64 };
+		std::uint64_t spawn_time{ 13000ui64 };
+		std::uint64_t smp_day_cycle{ 1ui64 };
+		std::uint64_t held_light{ 1ui64 };
 
 	private:
 
