@@ -37,7 +37,7 @@ namespace mc
 			}
 
 			functions::write_varint(packet, 0);
-			functions::write_frame(trees[family], packet);
+			functions::write_packet_frame(trees[family], packet);
 		}
 	}
 	/*

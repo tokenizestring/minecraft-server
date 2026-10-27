@@ -72,11 +72,11 @@ namespace mc
 			functions::write_varint(packet, layout.config_out_tags);
 			functions::write_varint(packet, static_cast<std::int32_t>(tag_registries));
 			functions::write_bytes(packet, tags.data(), tags.size());
-			functions::write_frame(target.config, packet);
+			functions::write_packet_frame(target.config, packet);
 
 			packet.clear();
 			functions::write_varint(packet, config_out_finish);
-			functions::write_frame(target.config, packet);
+			functions::write_packet_frame(target.config, packet);
 
 			target.loaded = (target.plains != missing_index && target.overworld != missing_index);
 
@@ -112,13 +112,13 @@ namespace mc
 		functions::write_varint(packet, config_out_custom_payload);
 		functions::write_string(packet, modern_brand_channel);
 		functions::write_string(packet, server_brand);
-		functions::write_frame(target.config, packet);
+		functions::write_packet_frame(target.config, packet);
 
 		packet.clear();
 		functions::write_varint(packet, layout.config_out_features);
 		functions::write_varint(packet, 1);
 		functions::write_string(packet, modern_feature_vanilla);
-		functions::write_frame(target.config, packet);
+		functions::write_packet_frame(target.config, packet);
 
 		packet.clear();
 		functions::write_varint(packet, layout.config_out_known_packs);
@@ -126,7 +126,7 @@ namespace mc
 		functions::write_string(packet, modern_pack_namespace);
 		functions::write_string(packet, modern_pack_id);
 		functions::write_string(packet, layout.pack_version);
-		functions::write_frame(target.config, packet);
+		functions::write_packet_frame(target.config, packet);
 	}
 	/*
 	//=====================================================================================
@@ -170,7 +170,7 @@ namespace mc
 				}
 			}
 
-			functions::write_frame(target.config, packet);
+			functions::write_packet_frame(target.config, packet);
 		}
 
 		lines.clear();

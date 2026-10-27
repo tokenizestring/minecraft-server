@@ -194,7 +194,7 @@ namespace mc
 				functions::write_string(packet, chat_objective);
 			}
 
-			functions::write_frame(*out, packet);
+			functions::write_packet_frame(*out, packet);
 		}
 
 		return out;
@@ -212,13 +212,13 @@ namespace mc
 		functions::write_u8(packet, objective_create);
 		functions::write_string(packet, chat_title);
 		functions::write_string(packet, v1_8_objective_type);
-		functions::write_frame(*out, packet);
+		functions::write_packet_frame(*out, packet);
 
 		packet.clear();
 		functions::write_varint(packet, v1_8_play_out_display_objective);
 		functions::write_u8(packet, static_cast<std::uint8_t>(display_slot_sidebar));
 		functions::write_string(packet, chat_objective);
-		functions::write_frame(*out, packet);
+		functions::write_packet_frame(*out, packet);
 
 		for (auto index{ 0u }; index < lines.size(); ++index)
 		{
@@ -230,7 +230,7 @@ namespace mc
 			functions::write_u8(packet, 0u);
 			functions::write_string(packet, chat_objective);
 			functions::write_varint(packet, static_cast<std::int32_t>(config.chat_lines - index));
-			functions::write_frame(*out, packet);
+			functions::write_packet_frame(*out, packet);
 		}
 
 		return out;

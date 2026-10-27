@@ -194,7 +194,7 @@ namespace mc
 			functions::write_u8(packet, static_cast<std::uint8_t>(entry.rows * 9u));
 		}
 
-		functions::write_frame(*out, packet);
+		functions::write_packet_frame(*out, packet);
 		return out;
 	}
 	/*
@@ -250,7 +250,7 @@ namespace mc
 			functions::write_varint(packet, 0);
 		}
 
-		functions::write_frame(*out, packet);
+		functions::write_packet_frame(*out, packet);
 		return out;
 	}
 	/*
