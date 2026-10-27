@@ -66,10 +66,15 @@ namespace mc
 			pay(player, argument);
 		}
 
-		else if (name == sell_command && player.edition == structures::edition_java)
+		else if (name == sell_command && player.edition == structures::edition_java && player.world == structures::world_smp)
 		{
 			market.sell(player, player.held_slot, argument);
 			java_inventory.send_slot(*static_cast<structures::client_s*>(player.link), player.held_slot);
+		}
+
+		else if (name == sell_command && player.edition == structures::edition_java)
+		{
+			chat.notify(player, "your items live in the smp, sell from there");
 		}
 
 		else if (name == sell_command)
@@ -85,6 +90,26 @@ namespace mc
 		else if (name == buy_command)
 		{
 			bedrock_market.open_buy(*static_cast<structures::session_s*>(player.link), argument);
+		}
+
+		else if (name == games_command)
+		{
+			hub.open(player, hub_menu_games);
+		}
+
+		else if (name == info_command)
+		{
+			hub.open(player, hub_menu_info);
+		}
+
+		else if (name == friends_command && player.edition == structures::edition_bedrock)
+		{
+			bedrock_menu.open_social(*static_cast<structures::session_s*>(player.link));
+		}
+
+		else if (name == friends_command)
+		{
+			java_social.open(*static_cast<structures::client_s*>(player.link));
 		}
 
 		else
