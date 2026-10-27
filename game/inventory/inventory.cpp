@@ -12,7 +12,7 @@ namespace mc
 	std::uint32_t inventory_c::add(structures::player_s& player, std::uint16_t item, std::uint32_t count) const
 	{
 		structures::item_stack_s stack{ item, static_cast<std::uint8_t>(std::min<std::uint32_t>(count, 255u)) };
-		return merge(player, stack, 0u, inventory_size);
+		return merge(player, stack, 0u, storage_size);
 	}
 	/*
 	//=====================================================================================
@@ -100,6 +100,11 @@ namespace mc
 			slot = window_slot - hotbar_first_slot;
 		}
 
+		else if (window_slot == window_offhand_slot)
+		{
+			slot = static_cast<std::int32_t>(offhand_slot);
+		}
+
 		else if (window_slot == click_outside)
 		{
 			slot = click_outside;
@@ -112,7 +117,7 @@ namespace mc
 	*/
 	std::int32_t inventory_c::get_window_slot(std::uint32_t slot)
 	{
-		return slot < hotbar_size ? static_cast<std::int32_t>(slot) + hotbar_first_slot : static_cast<std::int32_t>(slot);
+		return slot < hotbar_size ? static_cast<std::int32_t>(slot) + hotbar_first_slot : (slot == offhand_slot ? window_offhand_slot : static_cast<std::int32_t>(slot));
 	}
 	/*
 	//=====================================================================================
@@ -179,11 +184,11 @@ namespace mc
 	void inventory_c::quick_move(structures::player_s& player, std::int32_t slot) const
 	{
 		auto& stack{ player.inventory[static_cast<std::size_t>(slot)] };
-		auto hotbar{ slot < static_cast<std::int32_t>(hotbar_size) };
+		auto to_main{ slot < static_cast<std::int32_t>(hotbar_size) || slot == static_cast<std::int32_t>(offhand_slot) };
 
 		if (stack.count)
 		{
-			stack.count = static_cast<std::uint8_t>(merge(player, stack, hotbar ? hotbar_size : 0u, hotbar ? inventory_size : hotbar_size));
+			stack.count = static_cast<std::uint8_t>(merge(player, stack, to_main ? hotbar_size : 0u, to_main ? storage_size : hotbar_size));
 			stack.item = stack.count ? stack.item : 0u;
 		}
 	}
