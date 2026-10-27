@@ -249,7 +249,7 @@ namespace mc
 
 		for (auto& job : ready)
 		{
-			if (job.epoch == epochs[job.world] && job.edits == edits.get(job.world, job.x, job.z))
+			if (job.epoch == epochs[job.world] && job.around[4] == edits.get(job.world, job.x, job.z))
 			{
 				auto key{ get_key(job.x, job.z) };
 				auto& entry{ cache[job.world][job.family][key] };
@@ -278,9 +278,16 @@ namespace mc
 
 		else if (pending[target][family].insert(key).second)
 		{
+			structures::chunk_job_s job{ target, family, chunk_x, chunk_z, config.smp_seed, epochs[target], {}, {} };
+
+			for (auto index{ 0u }; index < job.around.size(); ++index)
+			{
+				job.around[index] = edits.get(target, chunk_x + static_cast<std::int32_t>(index % 3u) - 1, chunk_z + static_cast<std::int32_t>(index / 3u) - 1);
+			}
+
 			{
 				std::lock_guard lock{ jobs_lock };
-				jobs.push_back(structures::chunk_job_s{ target, family, chunk_x, chunk_z, config.smp_seed, epochs[target], edits.get(target, chunk_x, chunk_z), {} });
+				jobs.push_back(std::move(job));
 			}
 
 			wake.notify_one();

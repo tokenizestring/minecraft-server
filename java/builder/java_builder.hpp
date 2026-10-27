@@ -38,6 +38,7 @@ namespace mc
 		deflate_c deflater;
 		std::uint64_t seed;
 		const std::vector<structures::edit_s>* overrides;
+		light_c::around_t around;
 		std::array<std::uint16_t, section_volume> kinds;
 		std::array<std::uint16_t, section_volume> slots;
 		std::vector<std::uint16_t> palette;

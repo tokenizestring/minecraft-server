@@ -10,7 +10,12 @@ namespace mc
 	std::shared_ptr<const std::vector<std::uint8_t>> java_builder_c::build(const structures::chunk_job_s& job)
 	{
 		packet.clear();
-		overrides = job.edits.get();
+		overrides = job.around[4].get();
+
+		for (auto index{ 0u }; index < around.size(); ++index)
+		{
+			around[index] = job.around[index].get();
+		}
 
 		if (job.world == structures::world_smp && seed != job.seed)
 		{
@@ -100,7 +105,7 @@ namespace mc
 		functions::write_varint(packet, static_cast<std::int32_t>(sections.size()));
 		functions::write_bytes(packet, sections.data(), sections.size());
 		functions::write_varint(packet, 0);
-		write_light(layout, light.compute_generated(generator.get_blocks(), highest));
+		write_light(layout, light.compute_generated(generator.get_blocks(), highest, around));
 	}
 	/*
 	//=====================================================================================
@@ -288,7 +293,7 @@ namespace mc
 			highest = std::max(highest, generator.get_top(column));
 		}
 
-		auto lit{ light.compute_generated(generator.get_blocks(), highest) };
+		auto lit{ light.compute_generated(generator.get_blocks(), highest, around) };
 
 		for (auto section{ 0u }; section < v1_8_section_count; ++section)
 		{
@@ -318,7 +323,18 @@ namespace mc
 			}
 		}
 
-		sections.insert(sections.end(), static_cast<std::size_t>(std::popcount(mask)) * light_array_size, 0x00u);
+		for (auto section{ 0u }; section < v1_8_section_count; ++section)
+		{
+			if (((mask >> section) & 1u) && section + v1_8_section_offset < lit)
+			{
+				functions::write_bytes(sections, light.get_block_section(section + v1_8_section_offset), light_array_size);
+			}
+
+			else if ((mask >> section) & 1u)
+			{
+				sections.insert(sections.end(), light_array_size, 0x00u);
+			}
+		}
 
 		for (auto section{ 0u }; section < v1_8_section_count; ++section)
 		{
@@ -390,8 +406,10 @@ namespace mc
 	*/
 	void java_builder_c::write_light(const structures::layout_s& layout, std::uint32_t lit)
 	{
+		auto block_mask{ lit ? light.get_block_mask() : 0ui64 };
+
 		functions::write_bitset(packet, ((1ui64 << lit) - 1ui64) << 1u, layout.byte_bitsets);
-		functions::write_bitset(packet, 0ui64, layout.byte_bitsets);
+		functions::write_bitset(packet, block_mask << 1u, layout.byte_bitsets);
 		functions::write_bitset(packet, 0ui64, layout.byte_bitsets);
 		functions::write_bitset(packet, 0ui64, layout.byte_bitsets);
 		functions::write_varint(packet, static_cast<std::int32_t>(lit));
@@ -402,7 +420,16 @@ namespace mc
 			functions::write_bytes(packet, light.get_section(section), light_array_size);
 		}
 
-		functions::write_varint(packet, 0);
+		functions::write_varint(packet, std::popcount(block_mask));
+
+		for (auto section{ 0u }; section < lit; ++section)
+		{
+			if ((block_mask >> section) & 1ui64)
+			{
+				functions::write_varint(packet, static_cast<std::int32_t>(light_array_size));
+				functions::write_bytes(packet, light.get_block_section(section), light_array_size);
+			}
+		}
 	}
 	/*
 	//=====================================================================================
