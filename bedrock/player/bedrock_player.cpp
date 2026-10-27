@@ -264,6 +264,15 @@ namespace mc
 		functions::write_string(out, bedrock_skin_trusted);
 		functions::write_string(out, "");
 	}
+	/*
+	//=====================================================================================
+	*/
+	void bedrock_player_c::set_gamemode(structures::session_s& session, std::uint8_t mode)
+	{
+		body.clear();
+		functions::write_zigzag32(body, mode);
+		bedrock_packet.send(session, bedrock_set_player_game_type, body);
+	}
 }
 
 //=====================================================================================

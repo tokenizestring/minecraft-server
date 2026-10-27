@@ -18,6 +18,7 @@ namespace mc
 		void move(structures::session_s& viewer, const structures::player_s& subject);
 		void despawn(structures::session_s& viewer, const structures::player_s& subject);
 		void send_actor_data(structures::session_s& session);
+		void set_gamemode(structures::session_s& session, std::uint8_t mode);
 
 	private:
 

@@ -16,6 +16,7 @@ namespace mc
 		void spawn(structures::client_s& viewer, const structures::player_s& subject, bool entity);
 		void move(structures::client_s& viewer, const structures::player_s& subject);
 		void despawn(structures::client_s& viewer, const structures::player_s& subject);
+		void set_gamemode(structures::client_s& client, std::uint8_t mode);
 
 	private:
 

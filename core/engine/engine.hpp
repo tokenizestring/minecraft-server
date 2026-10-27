@@ -340,6 +340,13 @@ namespace mc
 	constexpr std::int32_t modern_min_section = -4;
 	constexpr auto view_radius = 2;
 	constexpr std::uint8_t gamemode_survival = 0u;
+	constexpr auto gamemode_command = "gamemode";
+	constexpr auto gamemode_alias = "gm";
+	constexpr const char* gamemode_arguments[] = { "survival", "creative", "adventure", "spectator", "0", "1", "2", "3" };
+	constexpr const char* gamemode_names[] = { "survival", "creative", "adventure", "spectator" };
+	constexpr std::uint8_t modern_game_event_change_mode = 3u;
+	constexpr std::int32_t v1_8_play_out_game_state = 0x2B;
+	constexpr std::uint32_t bedrock_set_player_game_type = 62u;
 
 	constexpr auto section_volume = 4096u;
 	constexpr auto light_array_size = 2048u;
@@ -566,6 +573,7 @@ namespace mc
 			bool sidebar;
 			bool chat_visible;
 			char color;
+			std::uint8_t gamemode;
 			edition_e edition;
 			std::int32_t platform;
 			void* link;

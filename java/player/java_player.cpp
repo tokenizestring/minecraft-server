@@ -175,6 +175,29 @@ namespace mc
 
 		network.send(viewer, packet);
 	}
+	/*
+	//=====================================================================================
+	*/
+	void java_player_c::set_gamemode(structures::client_s& client, std::uint8_t mode)
+	{
+		packet.clear();
+
+		if (functions::is_modern(client.family))
+		{
+			functions::write_varint(packet, client.layout.play_out_game_event);
+			functions::write_u8(packet, modern_game_event_change_mode);
+			functions::write_f32(packet, static_cast<std::float_t>(mode));
+		}
+
+		else
+		{
+			functions::write_varint(packet, v1_8_play_out_game_state);
+			functions::write_u8(packet, modern_game_event_change_mode);
+			functions::write_f32(packet, static_cast<std::float_t>(mode));
+		}
+
+		network.send(client, packet);
+	}
 }
 
 //=====================================================================================
