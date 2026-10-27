@@ -191,6 +191,16 @@ namespace mc
 			java_block.handle_modern(client, id, in);
 		}
 
+		else if (id == client.layout.play_in_set_carried_item)
+		{
+			java_block.handle_held(client, in);
+		}
+
+		else if (id == client.layout.play_in_set_creative_slot)
+		{
+			java_block.handle_creative(client, in);
+		}
+
 		else if (id == client.layout.play_in_attack || id == client.layout.play_in_interact)
 		{
 			java_menu.handle_interact(client, id, in);
