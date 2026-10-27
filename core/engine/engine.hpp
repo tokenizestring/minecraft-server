@@ -367,16 +367,30 @@ namespace mc
 	constexpr std::int32_t v1_8_play_out_game_state = 0x2B;
 	constexpr std::uint32_t bedrock_set_player_game_type = 62u;
 	constexpr std::uint32_t bedrock_update_adventure_settings = 188u;
-	constexpr std::uint32_t bedrock_inventory_transaction = 30u;
 	constexpr std::uint32_t bedrock_modal_form_request = 100u;
 	constexpr std::uint32_t bedrock_modal_form_response = 101u;
-	constexpr std::uint32_t bedrock_transaction_use_on_actor = 3u;
 	constexpr std::uint32_t bedrock_list_remove_count = 1u;
-	constexpr auto npc_file_name = "npcs.txt";
-	constexpr auto max_npcs = 64u;
-	constexpr auto npc_ground_search = 16;
-	constexpr auto npc_look_range = 12.0;
-	constexpr std::uint32_t npc_angle_sent = 0x10000u;
+	constexpr auto menu_file_name = "menus.txt";
+	constexpr std::uint32_t hub_menu_games = 0u;
+	constexpr std::uint32_t hub_menu_info = 1u;
+	constexpr std::uint32_t hub_menu_count = 2u;
+	constexpr std::uint32_t hub_games_slot = 0u;
+	constexpr std::uint32_t hub_friends_slot = 4u;
+	constexpr std::uint32_t hub_info_slot = 8u;
+	constexpr auto games_command = "games";
+	constexpr auto friends_command = "friends";
+	constexpr auto info_command = "info";
+	constexpr std::uint32_t social_window_id = 9u;
+	constexpr auto social_title = "friends";
+	constexpr std::uint32_t max_friends = 100u;
+	constexpr std::uint32_t max_requests = 20u;
+	constexpr std::uint32_t bedrock_social_form = 1002u;
+	constexpr std::uint8_t social_wants_you = 0u;
+	constexpr std::uint8_t social_friend_online = 1u;
+	constexpr std::uint8_t social_requested = 2u;
+	constexpr std::uint8_t social_stranger = 3u;
+	constexpr std::uint8_t social_friend_offline = 4u;
+	constexpr const char* social_labels[] = { "wants to be your friend", "friend, online", "request sent", "online", "friend, offline" };
 	constexpr auto degrees_per_radian = 57.29577951308232;
 	constexpr std::int32_t v1_8_play_out_entity_look = 0x16;
 
@@ -1168,8 +1182,6 @@ namespace mc
 			bool chat_visible;
 			char color;
 			std::uint8_t gamemode;
-			bool npc;
-			std::array<std::uint32_t, max_npcs> npc_angles;
 			world_e world;
 			std::uint32_t menu;
 			std::int32_t menu_state;
@@ -1181,6 +1193,8 @@ namespace mc
 			item_stack_s cursor;
 			std::uint32_t held_slot;
 			std::int64_t balance;
+			std::vector<std::string> friends;
+			std::vector<std::string> requests;
 		};
 		/*
 		//=====================================================================================
@@ -1206,9 +1220,16 @@ namespace mc
 		/*
 		//=====================================================================================
 		*/
-		struct npc_s
+		struct social_entry_s
 		{
-			player_s player;
+			std::string name;
+			std::uint8_t state;
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct menu_s
+		{
 			std::string title;
 			std::uint32_t rows;
 			std::vector<menu_item_s> items;
@@ -1268,6 +1289,7 @@ namespace mc
 			std::uint64_t inject_ms;
 			std::vector<std::uint32_t> market_view;
 			std::vector<std::uint32_t> sell_slots;
+			std::vector<std::string> social_view;
 		};
 		/*
 		//=====================================================================================
@@ -1395,6 +1417,9 @@ namespace mc
 			std::vector<std::int32_t> drag;
 			std::int32_t drag_button;
 			bool market_open;
+			bool social_open;
+			std::uint32_t social_page;
+			std::vector<std::string> social_view;
 			std::uint32_t market_page;
 			std::string market_filter;
 			std::array<std::uint32_t, market_page_size> market_view;
