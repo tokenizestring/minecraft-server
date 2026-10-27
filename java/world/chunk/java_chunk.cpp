@@ -53,6 +53,7 @@ namespace mc
 	*/
 	void java_chunk_c::tick()
 	{
+		clock = functions::get_clock();
 		collect();
 
 		for (auto player : world.get_players())
@@ -266,7 +267,9 @@ namespace mc
 
 		for (auto& job : ready)
 		{
-			if (job.epoch == epochs[job.world] && job.around[4] == edits.get(job.world, job.x, job.z))
+			auto current{ job.epoch == epochs[job.world] && job.around[4] == edits.get(job.world, job.x, job.z) };
+
+			if (current && job.expires > clock)
 			{
 				auto key{ get_key(job.x, job.z) };
 				auto& entry{ cache[job.world][job.family][key] };
@@ -274,12 +277,18 @@ namespace mc
 				cache_clock += 1u;
 				entry.packet = std::move(job.packet);
 				entry.last_use = cache_clock;
+				entry.expires = job.expires;
 				pending[job.world][job.family].erase(key);
 
 				if (job.surface && job.world == structures::world_smp)
 				{
 					surface.store(job.x, job.z, std::move(job.surface));
 				}
+			}
+
+			else if (current)
+			{
+				pending[job.world][job.family].erase(get_key(job.x, job.z));
 			}
 		}
 	}
@@ -290,7 +299,7 @@ namespace mc
 	{
 		auto key{ get_key(chunk_x, chunk_z) };
 		auto found{ cache[target][family].find(key) };
-		auto cached{ found != cache[target][family].end() && found->second.packet };
+		auto cached{ found != cache[target][family].end() && found->second.packet && found->second.expires > clock };
 
 		if (cached)
 		{
@@ -300,7 +309,7 @@ namespace mc
 
 		else if (pending[target][family].insert(key).second)
 		{
-			structures::chunk_job_s job{ target, family, chunk_x, chunk_z, config.smp_seed, epochs[target], {}, {} };
+			structures::chunk_job_s job{ target, family, chunk_x, chunk_z, config.smp_seed, epochs[target], {}, {}, {}, functions::get_clock(), growth_never };
 
 			for (auto index{ 0u }; index < job.around.size(); ++index)
 			{
@@ -343,6 +352,7 @@ namespace mc
 			{
 				job.packet = builder.build(job);
 				job.surface = builder.take_surface();
+				job.expires = builder.get_expires();
 				std::lock_guard lock{ done_lock };
 				done.push_back(std::move(job));
 			}

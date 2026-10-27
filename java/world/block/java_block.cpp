@@ -53,7 +53,7 @@ namespace mc
 
 			if (in.good() && smp && hand == 0 && face < std::size(face_offsets))
 			{
-				place(client, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2]);
+				use_on(client, position[0], position[1], position[2], face);
 			}
 		}
 
@@ -90,7 +90,7 @@ namespace mc
 
 		if (valid && smp)
 		{
-			place(client, position[0] + face_offsets[face][0], position[1] + face_offsets[face][1], position[2] + face_offsets[face][2]);
+			use_on(client, position[0], position[1], position[2], face);
 		}
 
 		else if (valid)
@@ -133,21 +133,14 @@ namespace mc
 			vitals.stop_eating(client.player);
 		}
 
-		else if (smp && can_break(client, status) && survival)
+		else if (smp && can_break(client, status, x, y, z))
 		{
-			auto drop{ items.get_drop(lookup.get(structures::world_smp, x, y, z)) };
-			change(structures::world_smp, x, y, z, structures::block_air);
+			pop(client, x, y, z, survival);
 
-			if (drop && drops.spawn(structures::world_smp, { drop, 1u }, x + 0.5, y + 0.25, z + 0.5) == false)
+			if (crops.is_crop(lookup.get(structures::world_smp, x, y + 1, z)))
 			{
-				inventory.add(client.player, drop, 1u);
-				java_inventory.send_all(client);
+				pop(client, x, y + 1, z, survival);
 			}
-		}
-
-		else if (smp && can_break(client, status))
-		{
-			change(structures::world_smp, x, y, z, structures::block_air);
 		}
 
 		else if (!smp && client.family == structures::family_1_8 && (status == v1_8_dig_start || status == v1_8_dig_finish))
@@ -158,19 +151,40 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	void java_block_c::use_on(structures::client_s& client, std::int32_t x, std::int32_t y, std::int32_t z, std::uint32_t face)
+	{
+		const auto& stack{ client.player.inventory[client.player.held_slot] };
+		auto till{ stack.count && face != face_down && crops.is_hoe(stack.item) ? crops.get_till(lookup.get(structures::world_smp, x, y, z)) : kind_none };
+
+		if (till != kind_none && lookup.get(structures::world_smp, x, y + 1, z) == structures::block_air)
+		{
+			change(structures::world_smp, x, y, z, till, 0u);
+		}
+
+		else
+		{
+			place(client, x + face_offsets[face][0], y + face_offsets[face][1], z + face_offsets[face][2]);
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
 	void java_block_c::place(structures::client_s& client, std::int32_t x, std::int32_t y, std::int32_t z)
 	{
 		auto& stack{ client.player.inventory[client.player.held_slot] };
 		auto kind{ stack.count ? items.get_block(stack.item) : kind_none };
+		auto growing{ crops.is_growing(kind) };
+		auto allowed{ kind != kind_none && (growing == false || (lookup.get(structures::world_smp, x, y, z) == structures::block_air && crops.can_plant(kind, lookup.get(structures::world_smp, x, y - 1, z)))) };
+		auto stamp{ growing ? functions::get_stamp(functions::get_clock()) : std::uint16_t{ 0u } };
 
-		if (kind != kind_none && client.player.gamemode == gamemode_creative)
+		if (allowed && client.player.gamemode == gamemode_creative)
 		{
-			change(structures::world_smp, x, y, z, kind);
+			change(structures::world_smp, x, y, z, kind, stamp);
 		}
 
-		else if (kind != kind_none)
+		else if (allowed)
 		{
-			change(structures::world_smp, x, y, z, kind);
+			change(structures::world_smp, x, y, z, kind, stamp);
 			stack.count = static_cast<std::uint8_t>(stack.count - 1u);
 			stack.item = stack.count ? stack.item : 0u;
 			java_inventory.send_slot(client, client.player.held_slot);
@@ -178,19 +192,35 @@ namespace mc
 
 		else
 		{
-			send_change(client, x, y, z, structures::block_air);
+			send_change(client, x, y, z, get_shown(x, y, z));
 			java_inventory.send_slot(client, client.player.held_slot);
 		}
 	}
 	/*
 	//=====================================================================================
 	*/
-	void java_block_c::change(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z, std::uint16_t kind)
+	void java_block_c::pop(structures::client_s& client, std::int32_t x, std::int32_t y, std::int32_t z, bool loot)
 	{
-		auto radius{ static_cast<std::int32_t>(config.view_distance) };
+		auto shown{ get_shown(x, y, z) };
+		change(structures::world_smp, x, y, z, structures::block_air, 0u);
+
+		for (const auto& stack : loot ? crops.get_loot(shown) : std::array<structures::item_stack_s, 2u>{})
+		{
+			if (stack.item && stack.count && drops.spawn(structures::world_smp, stack, x + 0.5, y + 0.25, z + 0.5) == false)
+			{
+				inventory.add(client.player, stack.item, stack.count);
+				java_inventory.send_all(client);
+			}
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_block_c::change(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z, std::uint16_t kind, std::uint16_t stamp)
+	{
 		auto glow{ blocks.get_emission(kind) || blocks.get_emission(lookup.get(target, x, y, z)) };
 
-		if (edits.set(target, x, y, z, kind))
+		if (edits.set(target, x, y, z, kind, stamp))
 		{
 			if (target == structures::world_smp)
 			{
@@ -202,16 +232,38 @@ namespace mc
 				java_chunk.invalidate(target, (x >> 4) + static_cast<std::int32_t>(offset % 3u) - 1, (z >> 4) + static_cast<std::int32_t>(offset / 3u) - 1);
 			}
 
-			for (auto player : world.get_players())
+			if (crops.is_growing(kind))
 			{
-				auto* other{ player->edition == structures::edition_java ? static_cast<structures::client_s*>(player->link) : nullptr };
+				growth.track(edits_c::get_key(x >> 4, z >> 4), structures::edit_s{ functions::get_edit_index(x, y, z), kind, stamp });
+			}
 
-				if (other && player->world == target && std::abs((x >> 4) - other->view_x) <= radius && std::abs((z >> 4) - other->view_z) <= radius)
-				{
-					send_change(*other, x, y, z, kind);
-				}
+			show(target, x, y, z, kind);
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_block_c::show(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z, std::uint16_t kind)
+	{
+		auto radius{ static_cast<std::int32_t>(config.view_distance) };
+
+		for (auto player : world.get_players())
+		{
+			auto* other{ player->edition == structures::edition_java ? static_cast<structures::client_s*>(player->link) : nullptr };
+
+			if (other && player->world == target && std::abs((x >> 4) - other->view_x) <= radius && std::abs((z >> 4) - other->view_z) <= radius)
+			{
+				send_change(*other, x, y, z, kind);
 			}
 		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint16_t java_block_c::get_shown(std::int32_t x, std::int32_t y, std::int32_t z)
+	{
+		auto kind{ lookup.get(structures::world_smp, x, y, z) };
+		return crops.is_growing(kind) ? crops.get_shown(edits.find_edit(structures::world_smp, x, y, z), functions::get_clock()) : kind;
 	}
 	/*
 	//=====================================================================================
@@ -251,9 +303,9 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	bool java_block_c::can_break(const structures::client_s& client, std::int32_t status)
+	bool java_block_c::can_break(const structures::client_s& client, std::int32_t status, std::int32_t x, std::int32_t y, std::int32_t z)
 	{
-		return status == v1_8_dig_finish || (status == v1_8_dig_start && client.player.gamemode == gamemode_creative);
+		return status == v1_8_dig_finish || (status == v1_8_dig_start && (client.player.gamemode == gamemode_creative || blocks.is_instant(lookup.get(structures::world_smp, x, y, z))));
 	}
 }
 

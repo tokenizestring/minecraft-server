@@ -15,6 +15,7 @@ namespace mc
 
 		std::shared_ptr<const std::vector<std::uint8_t>> build(const structures::chunk_job_s& job);
 		std::shared_ptr<const std::array<std::int16_t, 256u>> take_surface();
+		std::uint32_t get_expires() const;
 
 		static void write_empty_1_8(std::vector<std::uint8_t>& out, std::int32_t x, std::int32_t z);
 
@@ -39,6 +40,8 @@ namespace mc
 		light_c light;
 		deflate_c deflater;
 		std::uint64_t seed;
+		std::uint32_t clock;
+		std::uint32_t expires;
 		const std::vector<structures::edit_s>* overrides;
 		light_c::around_t around;
 		std::shared_ptr<const std::array<std::int16_t, 256u>> surface;

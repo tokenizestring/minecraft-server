@@ -52,6 +52,7 @@ namespace mc
 		std::vector<std::uint8_t> packet;
 		std::size_t cache_bytes;
 		std::uint64_t cache_clock;
+		std::uint32_t clock;
 	};
 
 	extern java_chunk_c java_chunk;

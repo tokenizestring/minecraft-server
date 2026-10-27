@@ -11,6 +11,8 @@ namespace mc
 	{
 		packet.clear();
 		overrides = job.around[4].get();
+		clock = job.clock;
+		expires = growth_never;
 
 		for (auto index{ 0u }; index < around.size(); ++index)
 		{
@@ -287,6 +289,13 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	std::uint32_t java_builder_c::get_expires() const
+	{
+		return expires;
+	}
+	/*
+	//=====================================================================================
+	*/
 	void java_builder_c::place_edits()
 	{
 		if (overrides)
@@ -311,7 +320,8 @@ namespace mc
 			{
 				if (edit.index - first < section_volume)
 				{
-					kinds[edit.index - first] = edit.kind;
+					kinds[edit.index - first] = crops.get_shown(edit, clock);
+					expires = std::min(expires, crops.get_ripen(edit, clock));
 				}
 			}
 		}
