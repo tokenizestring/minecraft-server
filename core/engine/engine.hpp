@@ -455,6 +455,14 @@ namespace mc
 	constexpr auto market_path = "market.txt";
 	constexpr auto profile_folder = "players";
 	constexpr std::uint64_t autosave_ms = 60000u;
+	constexpr auto edits_path = "edits.bin";
+	constexpr auto edits_temp_path = "edits.tmp";
+	constexpr std::uint32_t edits_magic = 0x45444954u;
+	constexpr std::uint32_t edits_version = 1u;
+	constexpr std::size_t max_kind_name = 128u;
+	constexpr std::uint32_t bedrock_market_buy_form = 1000u;
+	constexpr std::uint32_t bedrock_market_sell_form = 1001u;
+	constexpr std::uint32_t bedrock_market_buttons = 100u;
 	constexpr auto balance_command = "bal";
 	constexpr auto balance_alias = "balance";
 	constexpr auto pay_command = "pay";
@@ -1175,6 +1183,8 @@ namespace mc
 			player_s player;
 			std::uint32_t inject_step;
 			std::uint64_t inject_ms;
+			std::vector<std::uint32_t> market_view;
+			std::vector<std::uint32_t> sell_slots;
 		};
 		/*
 		//=====================================================================================
