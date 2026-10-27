@@ -19,6 +19,7 @@ namespace mc
 		std::uint8_t get_stack(std::uint16_t item) const;
 		std::uint16_t get_drop(std::uint16_t kind) const;
 		std::uint16_t get_block(std::uint16_t item) const;
+		void set_block(std::uint16_t item, std::uint16_t kind);
 		std::int32_t get_food(std::uint16_t item) const;
 		std::float_t get_damage(std::uint16_t item) const;
 		std::uint16_t find_name(std::string_view name) const;

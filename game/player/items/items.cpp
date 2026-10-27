@@ -156,6 +156,16 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	void items_c::set_block(std::uint16_t item, std::uint16_t kind)
+	{
+		if (item && item < block_of.size())
+		{
+			block_of[item] = kind;
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
 	std::int32_t items_c::get_food(std::uint16_t item) const
 	{
 		return item < foods.size() ? foods[item] : -1;
