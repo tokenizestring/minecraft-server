@@ -40,6 +40,7 @@ cl.exe %CFLAGS% ^
     game\features\features.cpp ^
     game\flora\flora.cpp ^
     game\generator\generator.cpp ^
+    game\edits\edits.cpp ^
     game\chat\chat.cpp ^
     game\command\command.cpp ^
     game\npc\npc.cpp ^

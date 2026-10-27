@@ -56,6 +56,7 @@
 #include "game/features/features.hpp"
 #include "game/flora/flora.hpp"
 #include "game/generator/generator.hpp"
+#include "game/edits/edits.hpp"
 #include "game/chat/chat.hpp"
 #include "game/npc/npc.hpp"
 #include "game/command/command.hpp"
