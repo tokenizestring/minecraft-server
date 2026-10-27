@@ -26,6 +26,7 @@ std::int32_t main()
 	mc::terrain.load();
 	mc::blocks.load();
 	mc::items.load();
+	mc::crops.load();
 	mc::generator.set_seed(mc::config.smp_seed);
 	mc::world.set_spawn(mc::structures::world_spawn, { mc::spawn_x, mc::spawn_y, mc::spawn_z, mc::spawn_yaw });
 	mc::world.set_spawn(mc::structures::world_smp, mc::generator.get_spawn());

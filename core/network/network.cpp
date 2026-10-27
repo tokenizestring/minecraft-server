@@ -77,6 +77,7 @@ namespace mc
 				chat.tick(now);
 				profile.tick(now);
 				edits.tick(now);
+				growth.tick();
 				drops.tick();
 				java_glow.tick();
 				mobs.tick();

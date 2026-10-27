@@ -45,6 +45,8 @@ cl.exe %CFLAGS% ^
     game\world\storage\surface\surface.cpp ^
     game\world\entities\drops\drops.cpp ^
     game\world\entities\mobs\mobs.cpp ^
+    game\world\farming\crops\crops.cpp ^
+    game\world\farming\growth\growth.cpp ^
     game\player\items\items.cpp ^
     game\player\inventory\inventory.cpp ^
     game\player\profile\profile.cpp ^

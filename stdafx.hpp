@@ -62,6 +62,8 @@
 #include "game/world/storage/surface/surface.hpp"
 #include "game/world/entities/drops/drops.hpp"
 #include "game/world/entities/mobs/mobs.hpp"
+#include "game/world/farming/crops/crops.hpp"
+#include "game/world/farming/growth/growth.hpp"
 
 #include "game/player/items/items.hpp"
 #include "game/player/inventory/inventory.hpp"
