@@ -96,10 +96,20 @@ namespace mc
 		{
 			functions::write_varint(packet, viewer.layout.play_out_move_entity_pos);
 			functions::write_varint(packet, drop.entity_id);
+
+			if (viewer.layout.packed_move)
+			{
+				functions::write_varint(packet, drop.resting ? 1 : 0);
+			}
+
 			functions::write_u16(packet, static_cast<std::uint16_t>(static_cast<std::int16_t>(step_x)));
 			functions::write_u16(packet, static_cast<std::uint16_t>(static_cast<std::int16_t>(step_y)));
 			functions::write_u16(packet, static_cast<std::uint16_t>(static_cast<std::int16_t>(step_z)));
-			functions::write_bool(packet, drop.resting);
+
+			if (viewer.layout.packed_move == false)
+			{
+				functions::write_bool(packet, drop.resting);
+			}
 		}
 
 		else if (modern)
