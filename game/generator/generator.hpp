@@ -15,6 +15,7 @@ namespace mc
 
 		void set_seed(std::uint64_t seed);
 		void generate(std::int32_t chunk_x, std::int32_t chunk_z);
+		void apply(const std::vector<structures::edit_s>& list);
 		const std::uint8_t* get_blocks() const;
 		std::int32_t get_top(std::uint32_t column) const;
 		structures::spawn_s get_spawn() const;

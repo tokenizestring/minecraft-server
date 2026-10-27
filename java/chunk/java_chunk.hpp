@@ -20,6 +20,7 @@ namespace mc
 		void update_view(structures::client_s& client);
 		void clear_view(structures::client_s& client);
 		void reset_world(structures::world_e target);
+		void invalidate(structures::world_e target, std::int32_t chunk_x, std::int32_t chunk_z);
 
 	private:
 

@@ -10,6 +10,7 @@ namespace mc
 	std::shared_ptr<const std::vector<std::uint8_t>> java_builder_c::build(const structures::chunk_job_s& job)
 	{
 		packet.clear();
+		overrides = job.edits.get();
 
 		if (job.world == structures::world_smp && seed != job.seed)
 		{
@@ -67,6 +68,7 @@ namespace mc
 		auto highest{ world_min_y - 1 };
 
 		generator.generate(chunk_x, chunk_z);
+		place_edits();
 
 		for (auto column{ 0u }; column < 256u; ++column)
 		{
@@ -84,7 +86,15 @@ namespace mc
 
 		for (auto index{ 0u }; index < modern_section_count; ++index)
 		{
-			write_generated_section(sections, family, generator.get_blocks() + static_cast<std::size_t>(index) * section_volume);
+			if (fill_kinds(index))
+			{
+				write_placed_section(sections, family);
+			}
+
+			else
+			{
+				write_generated_section(sections, family, generator.get_blocks() + static_cast<std::size_t>(index) * section_volume);
+			}
 		}
 
 		functions::write_varint(packet, static_cast<std::int32_t>(sections.size()));
@@ -160,12 +170,118 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	void java_builder_c::write_placed_section(std::vector<std::uint8_t>& out, structures::family_e family)
+	{
+		auto non_air{ 0u };
+		auto fluid{ 0u };
+		palette.clear();
+
+		for (auto index{ 0u }; index < section_volume; ++index)
+		{
+			auto kind{ kinds[index] };
+			auto found{ std::find(palette.begin(), palette.end(), kind) };
+
+			if (found == palette.end())
+			{
+				palette.push_back(kind);
+				found = palette.end() - 1;
+			}
+
+			slots[index] = static_cast<std::uint16_t>(found - palette.begin());
+			non_air += kind != structures::block_air ? 1u : 0u;
+			fluid += kind < placed_kind_base && blocks.is_fluid(static_cast<std::uint8_t>(kind)) ? 1u : 0u;
+		}
+
+		auto count{ static_cast<std::uint32_t>(palette.size()) };
+		auto bits{ std::max(4u, static_cast<std::uint32_t>(std::bit_width(count - 1u))) };
+		auto indirect{ bits <= 8u };
+		bits = indirect ? bits : functions::get_layout(family).direct_bits;
+		auto per_long{ 64u / bits };
+
+		functions::write_u16(out, static_cast<std::uint16_t>(non_air));
+		functions::write_u16(out, static_cast<std::uint16_t>(fluid));
+
+		if (count == 1u)
+		{
+			functions::write_u8(out, 0u);
+			functions::write_varint(out, static_cast<std::int32_t>(blocks.get_state(family, palette[0])));
+		}
+
+		else
+		{
+			functions::write_u8(out, static_cast<std::uint8_t>(bits));
+
+			if (indirect)
+			{
+				functions::write_varint(out, static_cast<std::int32_t>(count));
+
+				for (auto kind : palette)
+				{
+					functions::write_varint(out, static_cast<std::int32_t>(blocks.get_state(family, kind)));
+				}
+			}
+
+			for (auto word{ 0u }; word < (section_volume + per_long - 1u) / per_long; ++word)
+			{
+				auto packed{ 0ui64 };
+
+				for (auto slot{ 0u }; slot < per_long && word * per_long + slot < section_volume; ++slot)
+				{
+					auto value{ indirect ? static_cast<std::uint32_t>(slots[word * per_long + slot]) : blocks.get_state(family, kinds[word * per_long + slot]) };
+					packed |= static_cast<std::uint64_t>(value) << (slot * bits);
+				}
+
+				functions::write_u64(out, packed);
+			}
+		}
+
+		functions::write_u8(out, 0u);
+		functions::write_varint(out, static_cast<std::int32_t>(java_registry.get(family).plains));
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_builder_c::place_edits()
+	{
+		if (overrides)
+		{
+			generator.apply(*overrides);
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	bool java_builder_c::fill_kinds(std::uint32_t section)
+	{
+		auto first{ section * section_volume };
+		auto placed{ overrides && std::any_of(overrides->begin(), overrides->end(), [first](const auto& edit) { return edit.index - first < section_volume && edit.kind >= placed_kind_base; }) };
+
+		if (placed)
+		{
+			const auto* column{ generator.get_blocks() + first };
+			std::copy(column, column + section_volume, kinds.begin());
+
+			for (const auto& edit : *overrides)
+			{
+				if (edit.index - first < section_volume)
+				{
+					kinds[edit.index - first] = edit.kind;
+				}
+			}
+		}
+
+		return placed;
+	}
+	/*
+	//=====================================================================================
+	*/
 	void java_builder_c::write_generated_1_8(std::int32_t chunk_x, std::int32_t chunk_z)
 	{
 		auto highest{ world_min_y - 1 };
 		auto mask{ 0u };
 
 		generator.generate(chunk_x, chunk_z);
+		place_edits();
 
 		for (auto column{ 0u }; column < 256u; ++column)
 		{
@@ -191,10 +307,11 @@ namespace mc
 			if ((mask >> section) & 1u)
 			{
 				const auto* column{ generator.get_blocks() + static_cast<std::size_t>(section + v1_8_section_offset) * section_volume };
+				auto placed{ fill_kinds(section + v1_8_section_offset) };
 
 				for (auto index{ 0u }; index < section_volume; ++index)
 				{
-					auto id{ blocks.get_java(structures::family_1_8, column[index]) };
+					auto id{ placed ? blocks.get_state(structures::family_1_8, kinds[index]) : blocks.get_java(structures::family_1_8, column[index]) };
 					sections.push_back(static_cast<std::uint8_t>(id));
 					sections.push_back(static_cast<std::uint8_t>(id >> 8u));
 				}

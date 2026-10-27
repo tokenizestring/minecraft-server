@@ -93,6 +93,29 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	void generator_c::apply(const std::vector<structures::edit_s>& list)
+	{
+		for (const auto& edit : list)
+		{
+			blocks[edit.index] = static_cast<std::uint8_t>(edit.kind < placed_kind_base ? edit.kind : structures::block_stone);
+		}
+
+		for (const auto& edit : list)
+		{
+			auto column{ edit.index & 255u };
+			auto y{ world_min_y + world_height - 1 };
+
+			while (y > world_min_y && blocks[index(static_cast<std::int32_t>(column & 15u), y, static_cast<std::int32_t>(column >> 4u))] == structures::block_air)
+			{
+				y -= 1;
+			}
+
+			tops[column] = y;
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
 	const std::uint8_t* generator_c::get_blocks() const
 	{
 		return blocks.data();

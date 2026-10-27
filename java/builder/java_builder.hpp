@@ -22,6 +22,9 @@ namespace mc
 		void write_generated(structures::family_e family, std::int32_t chunk_x, std::int32_t chunk_z);
 		void write_generated_1_8(std::int32_t chunk_x, std::int32_t chunk_z);
 		void write_generated_section(std::vector<std::uint8_t>& out, structures::family_e family, const std::uint8_t* column) const;
+		void write_placed_section(std::vector<std::uint8_t>& out, structures::family_e family);
+		void place_edits();
+		bool fill_kinds(std::uint32_t section);
 		void write_terrain(structures::family_e family, std::int32_t chunk_x, std::int32_t chunk_z);
 		void write_light(const structures::layout_s& layout, std::uint32_t lit);
 		void frame();
@@ -34,6 +37,10 @@ namespace mc
 		light_c light;
 		deflate_c deflater;
 		std::uint64_t seed;
+		const std::vector<structures::edit_s>* overrides;
+		std::array<std::uint16_t, section_volume> kinds;
+		std::array<std::uint16_t, section_volume> slots;
+		std::vector<std::uint16_t> palette;
 		std::vector<std::uint8_t> packet;
 		std::vector<std::uint8_t> sections;
 		std::vector<std::uint8_t> compressed;

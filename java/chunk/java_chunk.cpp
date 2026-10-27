@@ -152,6 +152,27 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	void java_chunk_c::invalidate(structures::world_e target, std::int32_t chunk_x, std::int32_t chunk_z)
+	{
+		auto key{ get_key(chunk_x, chunk_z) };
+
+		for (auto& family : cache[target])
+		{
+			if (auto found{ family.find(key) }; found != family.end())
+			{
+				cache_bytes -= found->second.packet ? found->second.packet->size() : 0u;
+				family.erase(found);
+			}
+		}
+
+		for (auto& family : pending[target])
+		{
+			family.erase(key);
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
 	void java_chunk_c::send_center(structures::client_s& client, std::int32_t chunk_x, std::int32_t chunk_z)
 	{
 		if (functions::is_modern(client.family))
@@ -228,7 +249,7 @@ namespace mc
 
 		for (auto& job : ready)
 		{
-			if (job.epoch == epochs[job.world])
+			if (job.epoch == epochs[job.world] && job.edits == edits.get(job.world, job.x, job.z))
 			{
 				auto key{ get_key(job.x, job.z) };
 				auto& entry{ cache[job.world][job.family][key] };
@@ -259,7 +280,7 @@ namespace mc
 		{
 			{
 				std::lock_guard lock{ jobs_lock };
-				jobs.push_back(structures::chunk_job_s{ target, family, chunk_x, chunk_z, config.smp_seed, epochs[target], {} });
+				jobs.push_back(structures::chunk_job_s{ target, family, chunk_x, chunk_z, config.smp_seed, epochs[target], edits.get(target, chunk_x, chunk_z), {} });
 			}
 
 			wake.notify_one();
