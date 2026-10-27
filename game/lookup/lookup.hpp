@@ -14,8 +14,12 @@ namespace mc
 	public:
 
 		std::uint16_t get(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z);
+		std::int32_t get_top(std::int32_t x, std::int32_t z, std::uint16_t& kind);
+		bool is_land(std::int32_t x, std::int32_t z);
 
 	private:
+
+		void sync();
 
 		struct column_s
 		{

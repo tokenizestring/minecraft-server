@@ -24,16 +24,48 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	const std::array<std::uint8_t, column_volume>& lookup_c::get_column(std::int32_t chunk_x, std::int32_t chunk_z)
+	bool lookup_c::is_land(std::int32_t x, std::int32_t z)
 	{
-		auto key{ edits_c::get_key(chunk_x, chunk_z) };
-
+		sync();
+		return generator.surface_height(x, z) > gen_sea_level + 1;
+	}
+	/*
+	//=====================================================================================
+	*/
+	void lookup_c::sync()
+	{
 		if (seed != config.smp_seed)
 		{
 			generator.set_seed(config.smp_seed);
 			seed = config.smp_seed;
 			columns.clear();
 		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::int32_t lookup_c::get_top(std::int32_t x, std::int32_t z, std::uint16_t& kind)
+	{
+		auto top{ world_min_y - 1 };
+		kind = kind_none;
+
+		for (auto y{ world_min_y + world_height - 1 }; top < world_min_y && y >= world_min_y; --y)
+		{
+			auto found{ get(structures::world_smp, x, y, z) };
+			top = found != structures::block_air ? y : top;
+			kind = found != structures::block_air ? found : kind;
+		}
+
+		return top;
+	}
+	/*
+	//=====================================================================================
+	*/
+	const std::array<std::uint8_t, column_volume>& lookup_c::get_column(std::int32_t chunk_x, std::int32_t chunk_z)
+	{
+		auto key{ edits_c::get_key(chunk_x, chunk_z) };
+
+		sync();
 
 		if (columns.size() >= lookup_cache_chunks && columns.find(key) == columns.end())
 		{
