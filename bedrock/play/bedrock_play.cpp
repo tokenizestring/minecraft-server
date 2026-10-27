@@ -80,6 +80,14 @@ namespace mc
 			raknet.send(session, bedrock_chunk.get_spawn_area(), raknet_reliability_reliable_ordered);
 		}
 
+		body.clear();
+		functions::write_bool(body, false);
+		functions::write_bool(body, false);
+		functions::write_bool(body, true);
+		functions::write_bool(body, true);
+		functions::write_bool(body, true);
+		bedrock_packet.send(session, bedrock_update_adventure_settings, body);
+
 		bedrock_packet.send_play_status(session, bedrock_status_player_spawn);
 		bedrock_player.send_actor_data(session);
 
