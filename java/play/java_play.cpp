@@ -27,6 +27,7 @@ namespace mc
 		client.player.edition = structures::edition_java;
 		client.player.platform = bedrock_platform_java;
 		client.player.link = &client;
+		profile.load(client.player);
 
 		if (functions::is_modern(client.family))
 		{
@@ -37,6 +38,8 @@ namespace mc
 		{
 			join_1_8(client);
 		}
+
+		java_inventory.send_all(client);
 
 		utils::log.write(color_play, "[play](join) '%s' on '%s' entity %d at %.1f %.1f %.1f", client.name.c_str(), functions::get_version_name(client.protocol), client.entity_id, spawn_x, spawn_y, spawn_z);
 		world.add(client.player);
@@ -193,12 +196,12 @@ namespace mc
 
 		else if (id == client.layout.play_in_set_carried_item)
 		{
-			java_block.handle_held(client, in);
+			java_inventory.handle_held(client, in);
 		}
 
 		else if (id == client.layout.play_in_set_creative_slot)
 		{
-			java_block.handle_creative(client, in);
+			java_inventory.handle_creative(client, in);
 		}
 
 		else if (id == client.layout.play_in_attack || id == client.layout.play_in_interact)
@@ -208,7 +211,7 @@ namespace mc
 
 		else if (id == client.layout.play_in_container_click)
 		{
-			java_menu.handle_click(client, in);
+			java_inventory.handle_click(client, in);
 		}
 
 		else if (id == client.layout.play_in_container_close)
@@ -275,7 +278,17 @@ namespace mc
 
 		else if (id == v1_8_play_in_click_window)
 		{
-			java_menu.handle_click_1_8(client, in);
+			java_inventory.handle_click_1_8(client, in);
+		}
+
+		else if (id == v1_8_play_in_held_item)
+		{
+			java_inventory.handle_held(client, in);
+		}
+
+		else if (id == v1_8_play_in_creative_slot)
+		{
+			java_inventory.handle_creative_1_8(client, in);
 		}
 
 		else if (id == v1_8_play_in_close_window)
@@ -392,6 +405,7 @@ namespace mc
 	*/
 	void java_play_c::leave(structures::client_s& client)
 	{
+		profile.save(client.player);
 		world.remove(client.player);
 		utils::log.write(color_play, "[play](leave) '%s' on '%s'", client.name.c_str(), functions::get_version_name(client.protocol));
 	}

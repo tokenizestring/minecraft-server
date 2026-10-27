@@ -50,23 +50,10 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	void java_menu_c::handle_click(structures::client_s& client, structures::reader_s& in)
-	{
-		auto window{ functions::read_varint(in) };
-		functions::read_varint(in);
-		auto slot{ static_cast<std::int16_t>(functions::read_u16(in)) };
-
-		if (in.good() && window == static_cast<std::int32_t>(menu_window_id) && client.player.menu)
-		{
-			finish_click(client, slot);
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
 	void java_menu_c::handle_close(structures::client_s& client)
 	{
 		client.player.menu = 0u;
+		client.market_open = false;
 	}
 	/*
 	//=====================================================================================
@@ -79,28 +66,6 @@ namespace mc
 		if (in.good() && type < 2)
 		{
 			npc.interact(client.player, target);
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
-	void java_menu_c::handle_click_1_8(structures::client_s& client, structures::reader_s& in)
-	{
-		auto window{ functions::read_u8(in) };
-		auto slot{ static_cast<std::int16_t>(functions::read_u16(in)) };
-		functions::read_u8(in);
-		auto action{ functions::read_u16(in) };
-
-		if (in.good() && window == menu_window_id && client.player.menu)
-		{
-			packet.clear();
-			functions::write_varint(packet, v1_8_play_out_confirm_transaction);
-			functions::write_u8(packet, static_cast<std::uint8_t>(window));
-			functions::write_u16(packet, action);
-			functions::write_bool(packet, false);
-			network.send(client, packet);
-
-			finish_click(client, slot);
 		}
 	}
 	/*
@@ -125,7 +90,7 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	void java_menu_c::finish_click(structures::client_s& client, std::int32_t slot)
+	void java_menu_c::click(structures::client_s& client, std::int32_t slot)
 	{
 		const auto& entry{ npc.get_npcs()[client.player.menu - 1u] };
 		auto chosen{ std::any_of(entry.items.begin(), entry.items.end(), [slot](const auto& item) { return static_cast<std::int32_t>(item.slot) == slot; }) };

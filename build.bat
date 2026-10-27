@@ -41,6 +41,11 @@ cl.exe %CFLAGS% ^
     game\flora\flora.cpp ^
     game\generator\generator.cpp ^
     game\edits\edits.cpp ^
+    game\lookup\lookup.cpp ^
+    game\items\items.cpp ^
+    game\inventory\inventory.cpp ^
+    game\profile\profile.cpp ^
+    game\market\market.cpp ^
     game\chat\chat.cpp ^
     game\command\command.cpp ^
     game\npc\npc.cpp ^
@@ -54,6 +59,8 @@ cl.exe %CFLAGS% ^
     java\command\java_command.cpp ^
     java\block\java_block.cpp ^
     java\menu\java_menu.cpp ^
+    java\inventory\java_inventory.cpp ^
+    java\market\java_market.cpp ^
     bedrock\raknet\raknet.cpp ^
     bedrock\packet\bedrock_packet.cpp ^
     bedrock\login\bedrock_login.cpp ^
