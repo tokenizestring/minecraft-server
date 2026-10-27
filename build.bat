@@ -63,6 +63,7 @@ cl.exe %CFLAGS% ^
     java\inventory\java_inventory.cpp ^
     java\market\java_market.cpp ^
     java\drops\java_drops.cpp ^
+    java\glow\java_glow.cpp ^
     bedrock\raknet\raknet.cpp ^
     bedrock\packet\bedrock_packet.cpp ^
     bedrock\login\bedrock_login.cpp ^

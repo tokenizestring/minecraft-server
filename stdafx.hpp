@@ -81,6 +81,7 @@
 #include "java/inventory/java_inventory.hpp"
 #include "java/market/java_market.hpp"
 #include "java/drops/java_drops.hpp"
+#include "java/glow/java_glow.hpp"
 
 #include "bedrock/raknet/raknet.hpp"
 #include "bedrock/packet/bedrock_packet.hpp"

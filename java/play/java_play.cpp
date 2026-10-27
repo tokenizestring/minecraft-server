@@ -40,6 +40,7 @@ namespace mc
 		}
 
 		java_inventory.send_all(client);
+		send_time(client);
 
 		utils::log.write(color_play, "[play](join) '%s' on '%s' entity %d at %.1f %.1f %.1f", client.name.c_str(), functions::get_version_name(client.protocol), client.entity_id, spawn_x, spawn_y, spawn_z);
 		world.add(client.player);
@@ -117,6 +118,7 @@ namespace mc
 	{
 		const auto& spawn{ world.get_spawn(target) };
 
+		java_glow.clear(client);
 		java_chunk.clear_view(client);
 		world.change(client.player, target);
 		client.player.x = spawn.x;
@@ -125,7 +127,38 @@ namespace mc
 		client.player.yaw = spawn.yaw;
 		java_chunk.send_view(client);
 		teleport(client);
+		send_time(client);
 		world.moved(client.player);
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_play_c::send_time(structures::client_s& client)
+	{
+		auto time{ world.get_time(client.player.world) };
+		auto frozen{ world.is_frozen(client.player.world) };
+
+		packet.clear();
+
+		if (functions::is_modern(client.family))
+		{
+			functions::write_varint(packet, client.layout.play_out_set_time);
+			functions::write_u64(packet, world.get_age());
+			functions::write_varint(packet, 1);
+			functions::write_varint(packet, overworld_clock);
+			functions::write_varint64(packet, time);
+			functions::write_f32(packet, 0.0f);
+			functions::write_f32(packet, frozen ? 0.0f : 1.0f);
+		}
+
+		else
+		{
+			functions::write_varint(packet, v1_8_play_out_time);
+			functions::write_u64(packet, world.get_age());
+			functions::write_u64(packet, frozen ? 0ui64 - std::max<std::uint64_t>(time % day_length, 1u) : time);
+		}
+
+		network.send(client, packet);
 	}
 	/*
 	//=====================================================================================
@@ -406,6 +439,7 @@ namespace mc
 	void java_play_c::leave(structures::client_s& client)
 	{
 		profile.save(client.player);
+		java_glow.clear(client);
 		world.remove(client.player);
 		utils::log.write(color_play, "[play](leave) '%s' on '%s'", client.name.c_str(), functions::get_version_name(client.protocol));
 	}

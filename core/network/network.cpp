@@ -77,6 +77,7 @@ namespace mc
 				profile.tick(now);
 				edits.tick(now);
 				drops.tick();
+				java_glow.tick();
 				next_tick = std::max(next_tick + tick_ms, now);
 			}
 
