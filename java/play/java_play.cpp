@@ -117,8 +117,13 @@ namespace mc
 	*/
 	void java_play_c::switch_world(structures::client_s& client, structures::world_e target)
 	{
-		const auto& spawn{ world.get_spawn(target) };
-
+		switch_world(client, target, world.get_spawn(target));
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_play_c::switch_world(structures::client_s& client, structures::world_e target, const structures::spawn_s& spawn)
+	{
 		java_glow.clear(client);
 		java_chunk.clear_view(client);
 		world.change(client.player, target);

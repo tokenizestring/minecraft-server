@@ -229,6 +229,11 @@ namespace mc
 			chat.notify(player, "server switching is coming soon on this version");
 		}
 
+		else if (verb == rtp_command)
+		{
+			command.random_teleport(player);
+		}
+
 		else if (verb == "world" && rest == smp_command)
 		{
 			command.travel(player, structures::world_smp);
@@ -250,14 +255,14 @@ namespace mc
 			std::fprintf(file, "# hotbar=<slot 0-8>|<item id>|<name>|<lore line;lore line>|<action>\n");
 			std::fprintf(file, "# menu=<games|info>|<title>|<rows 1-6>, the item= lines after it fill that menu\n");
 			std::fprintf(file, "# item=<slot>|<item id>|<name>|<lore line;lore line>|<action>\n");
-			std::fprintf(file, "# actions: menu games | menu info | friends | message <text> | transfer <host> <port> | world smp | world spawn\n");
+			std::fprintf(file, "# actions: menu games | menu info | friends | rtp | message <text> | transfer <host> <port> | world smp | world spawn\n");
 			std::fprintf(file, "# colour codes like \xC2\xA7" "a work in names, titles and lore, bedrock opens these with /games, /friends and /info\n\n");
 			std::fprintf(file, "hotbar=0|minecraft:compass|\xC2\xA7" "aGames|\xC2\xA7" "7Right click to pick a game|menu games\n");
 			std::fprintf(file, "hotbar=4|minecraft:book|\xC2\xA7" "eFriends|\xC2\xA7" "7Right click to see who is online|friends\n");
 			std::fprintf(file, "hotbar=8|minecraft:clock|\xC2\xA7" "bInfo|\xC2\xA7" "7Right click for server info|menu info\n\n");
 			std::fprintf(file, "menu=games|\xC2\xA7" "2Games|3\n");
 			std::fprintf(file, "item=11|minecraft:grass_block|\xC2\xA7" "aJoin the SMP|\xC2\xA7" "7Survive and build with friends;\xC2\xA7" "eClick to play|world smp\n");
-			std::fprintf(file, "item=13|minecraft:compass|\xC2\xA7" "bRandom Teleport|\xC2\xA7" "7Start somewhere fresh;\xC2\xA7" "eClick to go|message random teleport opens with the smp\n");
+			std::fprintf(file, "item=13|minecraft:compass|\xC2\xA7" "bRandom Teleport|\xC2\xA7" "7Start somewhere fresh;\xC2\xA7" "eClick to go|rtp\n");
 			std::fprintf(file, "item=15|minecraft:red_bed|\xC2\xA7" "dHome|\xC2\xA7" "7Back to your bed;\xC2\xA7" "eClick to go home|message homes open with the smp\n\n");
 			std::fprintf(file, "menu=info|\xC2\xA7" "6Server Info|3\n");
 			std::fprintf(file, "item=11|minecraft:book|\xC2\xA7" "eRules|\xC2\xA7" "7Be nice to everyone;\xC2\xA7" "7No griefing or stealing;\xC2\xA7" "7No cheats or hacked clients|message rules: be nice, no griefing, no cheating\n");

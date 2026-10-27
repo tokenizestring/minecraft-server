@@ -46,6 +46,11 @@ namespace mc
 			travel(player, structures::world_spawn);
 		}
 
+		else if (name == rtp_command)
+		{
+			random_teleport(player);
+		}
+
 		else if (name == roll_command && config.is_operator(player.name))
 		{
 			roll(player);
@@ -131,6 +136,54 @@ namespace mc
 		else
 		{
 			chat.notify(player, "the smp is coming to bedrock soon");
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void command_c::random_teleport(structures::player_s& player)
+	{
+		auto now{ functions::get_time_ms() };
+		auto radius{ static_cast<std::int64_t>(config.rtp_radius) };
+		auto found{ false };
+		structures::spawn_s spot{};
+
+		for (auto attempt{ 0u }; player.edition == structures::edition_java && now >= player.rtp_ms && found == false && attempt < rtp_tries; ++attempt)
+		{
+			auto roll{ functions::make_seed() };
+			auto x{ static_cast<std::int32_t>(static_cast<std::int64_t>(roll % static_cast<std::uint64_t>(radius * 2 + 1)) - radius) };
+			auto z{ static_cast<std::int32_t>(static_cast<std::int64_t>((roll >> 32u) % static_cast<std::uint64_t>(radius * 2 + 1)) - radius) };
+			std::uint16_t kind{};
+
+			if (lookup.is_land(x, z))
+			{
+				auto top{ lookup.get_top(x, z, kind) };
+				found = top > gen_sea_level && kind != kind_none && (kind >= placed_kind_base || blocks.is_fluid(static_cast<std::uint8_t>(kind)) == false);
+				spot = { static_cast<std::double_t>(x) + 0.5, static_cast<std::double_t>(top + 1), static_cast<std::double_t>(z) + 0.5, player.yaw };
+			}
+		}
+
+		if (player.edition == structures::edition_bedrock)
+		{
+			chat.notify(player, "the smp is coming to bedrock soon");
+		}
+
+		else if (now < player.rtp_ms)
+		{
+			chat.notify(player, "wait " + std::to_string((player.rtp_ms - now + 999u) / 1000u) + "s before teleporting again");
+		}
+
+		else if (found)
+		{
+			player.rtp_ms = now + rtp_cooldown_ms;
+			java_play.switch_world(*static_cast<structures::client_s*>(player.link), structures::world_smp, spot);
+			chat.notify(player, "teleported to " + std::to_string(static_cast<std::int32_t>(spot.x)) + " " + std::to_string(static_cast<std::int32_t>(spot.z)));
+			utils::log.write(color_play, "[world](rtp) '%s' to %.0f %.0f %.0f", player.name.c_str(), spot.x, spot.y, spot.z);
+		}
+
+		else
+		{
+			chat.notify(player, "no safe spot found, try again");
 		}
 	}
 	/*

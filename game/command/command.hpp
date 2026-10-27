@@ -15,6 +15,7 @@ namespace mc
 
 		void run(structures::player_s& player, std::string_view line);
 		void travel(structures::player_s& player, structures::world_e target);
+		void random_teleport(structures::player_s& player);
 
 	private:
 

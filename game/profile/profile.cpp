@@ -23,6 +23,7 @@ namespace mc
 		player.inventory = {};
 		player.cursor = {};
 		player.friends.clear();
+		player.rtp_ms = 0u;
 
 		if (auto file{ std::fopen(get_path(player.name).c_str(), "rb") }; file)
 		{

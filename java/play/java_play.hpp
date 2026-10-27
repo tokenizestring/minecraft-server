@@ -18,6 +18,7 @@ namespace mc
 		void tick(structures::client_s& client, std::uint64_t now);
 		void leave(structures::client_s& client);
 		void switch_world(structures::client_s& client, structures::world_e target);
+		void switch_world(structures::client_s& client, structures::world_e target, const structures::spawn_s& spawn);
 		void send_time(structures::client_s& client);
 
 	private:
