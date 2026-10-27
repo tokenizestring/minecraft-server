@@ -19,6 +19,7 @@ namespace mc
 	private:
 
 		void roll(structures::player_s& player);
+		void pay(structures::player_s& player, std::string_view argument);
 
 		static void set_gamemode(structures::player_s& player, std::string_view argument);
 	};

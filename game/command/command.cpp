@@ -56,6 +56,32 @@ namespace mc
 			chat.notify(player, "you are not an operator");
 		}
 
+		else if ((name == balance_command || name == balance_alias) && player.edition == structures::edition_java)
+		{
+			chat.notify(player, "balance " + std::to_string(player.balance));
+		}
+
+		else if (name == pay_command && player.edition == structures::edition_java)
+		{
+			pay(player, argument);
+		}
+
+		else if (name == sell_command && player.edition == structures::edition_java)
+		{
+			market.sell(player, argument);
+			java_inventory.send_slot(*static_cast<structures::client_s*>(player.link), player.held_slot);
+		}
+
+		else if (name == buy_command && player.edition == structures::edition_java)
+		{
+			java_market.open(*static_cast<structures::client_s*>(player.link), argument);
+		}
+
+		else if (name == balance_command || name == balance_alias || name == pay_command || name == sell_command || name == buy_command)
+		{
+			chat.notify(player, "the market is coming to bedrock soon");
+		}
+
 		else
 		{
 			chat.notify(player, "unknown command");
@@ -107,6 +133,43 @@ namespace mc
 
 		utils::log.write(color_play, "[world](roll) '%s' new smp seed %llu", player.name.c_str(), config.smp_seed);
 		chat.notify(player, "smp rolled, new seed " + std::to_string(config.smp_seed));
+	}
+	/*
+	//=====================================================================================
+	*/
+	void command_c::pay(structures::player_s& player, std::string_view argument)
+	{
+		auto space{ argument.rfind(' ') };
+		auto target_name{ space != std::string_view::npos ? argument.substr(0u, space) : std::string_view{} };
+		auto* target{ profile_c::find_online(target_name) };
+		std::int64_t amount{};
+		auto [end, error]{ std::from_chars(argument.data() + (space != std::string_view::npos ? space + 1u : 0u), argument.data() + argument.size(), amount) };
+
+		if (target && target != &player && error == std::errc{} && amount > 0 && amount <= player.balance)
+		{
+			player.balance -= amount;
+			target->balance += amount;
+			profile.save(player);
+			profile.save(*target);
+			chat.notify(player, "paid " + target->name + " " + std::to_string(amount));
+			chat.notify(*target, player.name + " paid you " + std::to_string(amount));
+			utils::log.write(color_play, "[market](pay) '%s' paid '%s' %lld", player.name.c_str(), target->name.c_str(), amount);
+		}
+
+		else if (target && target != &player && error == std::errc{} && amount > 0)
+		{
+			chat.notify(player, "you only have " + std::to_string(player.balance));
+		}
+
+		else if (target_name.size() && target == nullptr)
+		{
+			chat.notify(player, "that player is not online");
+		}
+
+		else
+		{
+			chat.notify(player, "use /pay <name> <amount>");
+		}
 	}
 	/*
 	//=====================================================================================

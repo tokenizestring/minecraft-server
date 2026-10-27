@@ -18,13 +18,22 @@ namespace mc
 
 			packet.clear();
 			functions::write_varint(packet, functions::get_layout(family).play_out_commands);
-			functions::write_varint(packet, static_cast<std::int32_t>(6u + chats + modes));
-			write_node(packet, command_node_root, 1u, 5u, "");
-			write_node(packet, command_node_literal | command_node_executable, 6u, chats, chat_command);
-			write_node(packet, command_node_literal, 6u + chats, modes, gamemode_command);
+			functions::write_varint(packet, static_cast<std::int32_t>(12u + chats + modes));
+			write_node(packet, command_node_root, 1u, 10u, "");
+			write_node(packet, command_node_literal | command_node_executable, 12u, chats, chat_command);
+			write_node(packet, command_node_literal, 12u + chats, modes, gamemode_command);
 			write_node(packet, command_node_literal | command_node_executable, 0u, 0u, smp_command);
 			write_node(packet, command_node_literal | command_node_executable, 0u, 0u, spawn_command);
 			write_node(packet, command_node_literal | command_node_executable, 0u, 0u, roll_command);
+			write_node(packet, command_node_literal | command_node_executable, 0u, 0u, balance_command);
+			write_node(packet, command_node_literal | command_node_executable, 0u, 0u, balance_alias);
+			write_node(packet, command_node_literal, 11u, 1u, pay_command);
+			write_node(packet, command_node_literal, 11u, 1u, sell_command);
+			write_node(packet, command_node_literal | command_node_executable, 11u, 1u, buy_command);
+			write_node(packet, command_node_argument | command_node_executable, 0u, 0u, "");
+			functions::write_string(packet, command_text_argument);
+			functions::write_varint(packet, command_parser_string);
+			functions::write_varint(packet, command_string_greedy);
 
 			for (auto argument : chat_arguments)
 			{
