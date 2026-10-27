@@ -1,7 +1,7 @@
 
 //=====================================================================================
 
-#include "../../stdafx.hpp"
+#include "../../../stdafx.hpp"
 
 //=====================================================================================
 
@@ -196,6 +196,8 @@ namespace mc
 		generator.set_seed(config.smp_seed);
 		edits.clear(structures::world_smp);
 		drops.clear(structures::world_smp);
+		mobs.clear();
+		surface.clear();
 		java_chunk.reset_world(structures::world_smp);
 		world.set_spawn(structures::world_smp, generator.get_spawn());
 
