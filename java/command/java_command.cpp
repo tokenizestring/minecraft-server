@@ -13,15 +13,22 @@ namespace mc
 	{
 		for (auto family : { structures::family_26_2, structures::family_26_3 })
 		{
-			auto arguments{ static_cast<std::uint32_t>(std::size(chat_arguments)) };
+			auto chats{ static_cast<std::uint32_t>(std::size(chat_arguments)) };
+			auto modes{ static_cast<std::uint32_t>(std::size(gamemode_arguments)) };
 
 			packet.clear();
 			functions::write_varint(packet, functions::get_layout(family).play_out_commands);
-			functions::write_varint(packet, static_cast<std::int32_t>(2u + arguments));
-			write_node(packet, command_node_root, 1u, 1u, "");
-			write_node(packet, command_node_literal | command_node_executable, 2u, arguments, chat_command);
+			functions::write_varint(packet, static_cast<std::int32_t>(3u + chats + modes));
+			write_node(packet, command_node_root, 1u, 2u, "");
+			write_node(packet, command_node_literal | command_node_executable, 3u, chats, chat_command);
+			write_node(packet, command_node_literal, 3u + chats, modes, gamemode_command);
 
 			for (auto argument : chat_arguments)
+			{
+				write_node(packet, command_node_literal | command_node_executable, 0u, 0u, argument);
+			}
+
+			for (auto argument : gamemode_arguments)
 			{
 				write_node(packet, command_node_literal | command_node_executable, 0u, 0u, argument);
 			}
