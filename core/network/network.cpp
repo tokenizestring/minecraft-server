@@ -75,6 +75,7 @@ namespace mc
 				java_chunk.tick();
 				chat.tick(now);
 				profile.tick(now);
+				edits.tick(now);
 				next_tick = now + tick_ms;
 			}
 

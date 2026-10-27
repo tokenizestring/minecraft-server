@@ -29,6 +29,7 @@ std::int32_t main()
 	mc::generator.set_seed(mc::config.smp_seed);
 	mc::world.set_spawn(mc::structures::world_spawn, { mc::spawn_x, mc::spawn_y, mc::spawn_z, mc::spawn_yaw });
 	mc::world.set_spawn(mc::structures::world_smp, mc::generator.get_spawn());
+	mc::edits.load();
 
 	if (mc::java_registry.load() && mc::network.start())
 	{
@@ -45,6 +46,7 @@ std::int32_t main()
 		mc::market.load();
 		mc::network.run();
 		mc::profile.save_all();
+		mc::edits.shutdown();
 		mc::java_chunk.shutdown();
 		code = 0;
 	}
