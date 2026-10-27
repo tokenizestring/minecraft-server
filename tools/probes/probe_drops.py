@@ -60,6 +60,14 @@ check('the drop is removed for everyone', any(drop_id in [rvarint(b, rvarint(b, 
 inv = bodies(m, cb3['container_set_content'])
 check('and it lands in the hotbar', len(inv) >= 1)
 
+with m.lock: m.log.clear()
+for _ in range(5):
+    m.send(sb3['player_action'], varint(0) + pos(sx + 2, sy - 1, sz) + b'\x01' + varint(90))
+    m.send(sb3['player_action'], varint(2) + pos(sx + 2, sy - 1, sz) + b'\x01' + varint(91)); time.sleep(0.05)
+time.sleep(0.4)
+with m.lock: broke = [b for p, b in m.log if p == cb3['block_update'] and b[:8] == pos(sx + 2, sy - 1, sz) and rvarint(b, 8)[0] == 0]
+check('spam clicking (start then abort) breaks nothing in survival', not broke and not items_added(m, cb3, 72), len(broke))
+
 for client in (m, w2, w8):
     with client.lock: client.log.clear()
 m.send(sb3['player_action'], varint(5) + pos(0, 0, 0) + b'\x00' + varint(0)); time.sleep(0.3)
@@ -69,6 +77,11 @@ toss_id = rvarint(tossed[0], 0)[0] if tossed else None
 moves = [b for b in bodies(w2, cb2['move_entity_pos']) if rvarint(b, 0)[0] == toss_id]
 moves8 = [b for b in bodies(w8, 0x15) + bodies(w8, 0x18) if rvarint(b, 0)[0] == toss_id]
 check('the throw flies (26.2 and 1.8 get moves)', len(moves) >= 3 and len(moves8) >= 3, (len(moves), len(moves8)))
+def packed(b):
+    eid, p = rvarint(b, 0); props, p = rvarint(b, p)
+    return props <= 1 and len(b) - p == 6
+moves3 = [b for b in bodies(m, cb3['move_entity_pos']) if rvarint(b, 0)[0] == toss_id]
+check('26.3 moves use the packed layout (id, flags, 3 shorts)', len(moves3) >= 3 and all(packed(b) for b in moves3), [b.hex() for b in moves3[:2]])
 check('the thrower cannot grab it straight back', (toss_id, miner) not in taken(m, cb3['take_item_entity']))
 for _ in range(40):
     time.sleep(0.5)
