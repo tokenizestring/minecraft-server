@@ -24,6 +24,9 @@ std::int32_t main()
 	utils::log.write(mc::color_server, "[server](start) '%s'", mc::server_versions);
 	mc::config.load();
 	mc::terrain.load();
+	mc::generator.set_seed(mc::config.smp_seed);
+	mc::world.set_spawn(mc::structures::world_spawn, { mc::spawn_x, mc::spawn_y, mc::spawn_z, mc::spawn_yaw });
+	mc::world.set_spawn(mc::structures::world_smp, mc::generator.get_spawn());
 
 	if (mc::java_registry.load() && mc::network.start())
 	{

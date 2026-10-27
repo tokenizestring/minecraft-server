@@ -34,6 +34,7 @@ cl.exe %CFLAGS% ^
     game\world\world.cpp ^
     game\terrain\terrain.cpp ^
     game\light\light.cpp ^
+    game\generator\generator.cpp ^
     game\chat\chat.cpp ^
     game\command\command.cpp ^
     game\npc\npc.cpp ^
