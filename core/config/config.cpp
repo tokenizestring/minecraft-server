@@ -122,6 +122,11 @@ namespace mc
 			held_light = read_number(value, held_light, 0u, 1u);
 		}
 
+		else if (key == "rtp-radius")
+		{
+			rtp_radius = read_number(value, rtp_radius, 16u, 1000000u);
+		}
+
 		else if (key == "chat-lines")
 		{
 			chat_lines = static_cast<std::uint32_t>(read_number(value, chat_lines, 1u, max_chat_lines));
@@ -167,6 +172,8 @@ namespace mc
 			std::fprintf(file, "smp-day-cycle=%llu\n\n", smp_day_cycle);
 			std::fprintf(file, "# torches and lanterns held in either hand light up around the player (1 on, 0 off)\n");
 			std::fprintf(file, "held-light=%llu\n\n", held_light);
+			std::fprintf(file, "# random teleport lands this many blocks from the smp centre at most\n");
+			std::fprintf(file, "rtp-radius=%llu\n\n", rtp_radius);
 			std::fprintf(file, "# chat sidebar: lines shown (1-15) and seconds before a line fades\n");
 			std::fprintf(file, "chat-lines=%u\n", chat_lines);
 			std::fprintf(file, "chat-fade-seconds=%llu\n", chat_fade_ms / 1000ui64);

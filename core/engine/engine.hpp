@@ -378,6 +378,9 @@ namespace mc
 	constexpr std::uint32_t hub_friends_slot = 4u;
 	constexpr std::uint32_t hub_info_slot = 8u;
 	constexpr auto games_command = "games";
+	constexpr auto rtp_command = "rtp";
+	constexpr std::uint32_t rtp_tries = 24u;
+	constexpr std::uint64_t rtp_cooldown_ms = 10000u;
 	constexpr auto friends_command = "friends";
 	constexpr auto info_command = "info";
 	constexpr std::uint32_t social_window_id = 9u;
@@ -1195,6 +1198,7 @@ namespace mc
 			std::int64_t balance;
 			std::vector<std::string> friends;
 			std::vector<std::string> requests;
+			std::uint64_t rtp_ms;
 		};
 		/*
 		//=====================================================================================
