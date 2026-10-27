@@ -100,6 +100,11 @@ namespace mc
 			java_inventory.drop(client, status == drop_all_status);
 		}
 
+		else if (status == swap_hands_status)
+		{
+			java_inventory.swap_hands(client);
+		}
+
 		else if (smp && can_break(client, status) && survival)
 		{
 			auto drop{ items.get_drop(lookup.get(structures::world_smp, x, y, z)) };
@@ -155,10 +160,14 @@ namespace mc
 	void java_block_c::change(structures::world_e target, std::int32_t x, std::int32_t y, std::int32_t z, std::uint16_t kind)
 	{
 		auto radius{ static_cast<std::int32_t>(config.view_distance) };
+		auto glow{ blocks.get_emission(kind) || blocks.get_emission(lookup.get(target, x, y, z)) };
 
 		if (edits.set(target, x, y, z, kind))
 		{
-			java_chunk.invalidate(target, x >> 4, z >> 4);
+			for (auto offset{ glow ? 0u : 4u }; offset < (glow ? 9u : 5u); ++offset)
+			{
+				java_chunk.invalidate(target, (x >> 4) + static_cast<std::int32_t>(offset % 3u) - 1, (z >> 4) + static_cast<std::int32_t>(offset / 3u) - 1);
+			}
 
 			for (auto player : world.get_players())
 			{

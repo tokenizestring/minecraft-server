@@ -64,7 +64,7 @@ namespace mc
 		if (functions::is_modern(client.family))
 		{
 			functions::write_varint(packet, client.layout.play_out_player_inventory);
-			functions::write_varint(packet, static_cast<std::int32_t>(slot));
+			functions::write_varint(packet, slot == offhand_slot ? player_inventory_offhand : static_cast<std::int32_t>(slot));
 		}
 
 		else
@@ -213,6 +213,18 @@ namespace mc
 		if (in.good() && slot < hotbar_size)
 		{
 			client.player.held_slot = slot;
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_inventory_c::swap_hands(structures::client_s& client)
+	{
+		if (functions::is_modern(client.family))
+		{
+			std::swap(client.player.inventory[client.player.held_slot], client.player.inventory[offhand_slot]);
+			send_slot(client, client.player.held_slot);
+			send_slot(client, offhand_slot);
 		}
 	}
 	/*
