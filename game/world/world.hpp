@@ -22,6 +22,9 @@ namespace mc
 		void set_spawn(structures::world_e target, const structures::spawn_s& spawn);
 		const structures::spawn_s& get_spawn(structures::world_e target) const;
 		const std::vector<structures::player_s*>& get_players() const;
+		std::uint64_t get_time(structures::world_e target) const;
+		std::uint64_t get_age() const;
+		bool is_frozen(structures::world_e target) const;
 
 	private:
 
@@ -36,6 +39,8 @@ namespace mc
 		std::vector<structures::player_s*> dirty;
 		std::array<structures::spawn_s, structures::world_count> spawns;
 		std::int32_t next_entity_id;
+		std::uint64_t age;
+		std::uint64_t smp_time;
 	};
 
 	extern world_c world;

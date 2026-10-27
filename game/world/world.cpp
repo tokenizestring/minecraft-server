@@ -93,6 +93,19 @@ namespace mc
 		}
 
 		dirty.clear();
+		age += 1u;
+		smp_time += config.smp_day_cycle;
+
+		if (age % time_sync_ticks == 0u)
+		{
+			for (auto player : players)
+			{
+				if (player->edition == structures::edition_java && player->npc == false)
+				{
+					java_play.send_time(*static_cast<structures::client_s*>(player->link));
+				}
+			}
+		}
 	}
 	/*
 	//=====================================================================================
@@ -114,6 +127,27 @@ namespace mc
 	const std::vector<structures::player_s*>& world_c::get_players() const
 	{
 		return players;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint64_t world_c::get_time(structures::world_e target) const
+	{
+		return target == structures::world_smp ? smp_start_time + smp_time : config.spawn_time;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint64_t world_c::get_age() const
+	{
+		return age;
+	}
+	/*
+	//=====================================================================================
+	*/
+	bool world_c::is_frozen(structures::world_e target) const
+	{
+		return target != structures::world_smp || config.smp_day_cycle == 0u;
 	}
 	/*
 	//=====================================================================================
