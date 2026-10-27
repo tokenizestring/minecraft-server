@@ -41,7 +41,7 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	std::uint32_t light_c::compute_generated(const std::uint8_t* blocks, std::int32_t highest)
+	std::uint32_t light_c::compute_generated(const std::uint8_t* column, std::int32_t highest)
 	{
 		auto count{ highest >= world_min_y ? static_cast<std::uint32_t>(((highest - world_min_y) >> 4) + 1) : 0u };
 
@@ -58,7 +58,7 @@ namespace mc
 					for (auto x{ 0u }; x < light_region; ++x)
 					{
 						auto source_x{ std::clamp(static_cast<std::int32_t>(x) - static_cast<std::int32_t>(light_border), 0, 15) };
-						filters[(y * light_region + z) * light_region + x] = block_light_filters[blocks[(y * 16u + static_cast<std::uint32_t>(source_z)) * 16u + static_cast<std::uint32_t>(source_x)]];
+						filters[(y * light_region + z) * light_region + x] = blocks.get_filter(column[(y * 16u + static_cast<std::uint32_t>(source_z)) * 16u + static_cast<std::uint32_t>(source_x)]);
 					}
 				}
 			}

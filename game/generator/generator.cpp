@@ -12,22 +12,75 @@ namespace mc
 	void generator_c::set_seed(std::uint64_t seed)
 	{
 		world_seed = seed;
-		seed_low = static_cast<std::uint32_t>(seed ^ (seed >> 32u));
 	}
 	/*
 	//=====================================================================================
 	*/
 	void generator_c::generate(std::int32_t chunk_x, std::int32_t chunk_z)
 	{
-		fill(chunk_x, chunk_z);
-		carve(chunk_x, chunk_z);
-		place_ores(chunk_x, chunk_z);
-		decorate(chunk_x, chunk_z);
-		place_trees(chunk_x, chunk_z);
+		base_x = chunk_x * 16;
+		base_z = chunk_z * 16;
+		blocks.fill(structures::block_air);
+
+		auto highest{ world_min_y };
 
 		for (auto column{ 0u }; column < 256u; ++column)
 		{
-			auto y{ std::min(std::max(surfaces[column], smp_sea_level) + 16, world_min_y + world_height - 1) };
+			auto world_x{ base_x + static_cast<std::int32_t>(column & 15u) };
+			auto world_z{ base_z + static_cast<std::int32_t>(column >> 4u) };
+			heights[column] = surface_height(world_x, world_z);
+			biomes[column] = biome_for(world_x, world_z, heights[column]);
+			highest = std::max(highest, heights[column]);
+		}
+
+		sample_caves(highest);
+
+		for (auto column{ 0u }; column < 256u; ++column)
+		{
+			fill_column(static_cast<std::int32_t>(column & 15u), static_cast<std::int32_t>(column >> 4u));
+		}
+
+		for (auto column{ 0u }; column < 256u; ++column)
+		{
+			auto y{ std::min(heights[column], world_min_y + world_height - 1) };
+
+			while (y > world_min_y && blocks[index(static_cast<std::int32_t>(column & 15u), y, static_cast<std::int32_t>(column >> 4u))] == structures::block_air)
+			{
+				y -= 1;
+			}
+
+			grounds[column] = y;
+		}
+
+		caverns.dress(this, chunk_x, chunk_z);
+		features.collect(this, chunk_x, chunk_z);
+		features.place(this, chunk_x, chunk_z);
+		flora.place_trees(this, chunk_x, chunk_z);
+		flora.decorate(this, chunk_x, chunk_z);
+
+		place_veins(chunk_x, chunk_z, structures::block_granite, structures::block_tuff, -60, 80, 14, 34, 21ui64);
+		place_veins(chunk_x, chunk_z, structures::block_diorite, structures::block_tuff, -60, 80, 14, 34, 22ui64);
+		place_veins(chunk_x, chunk_z, structures::block_andesite, structures::block_tuff, -60, 80, 14, 34, 23ui64);
+		place_veins(chunk_x, chunk_z, structures::block_tuff, structures::block_tuff, -64, -20, 12, 40, 24ui64);
+		place_veins(chunk_x, chunk_z, structures::block_gravel, structures::block_gravel, -50, 60, 9, 26, 25ui64);
+		place_veins(chunk_x, chunk_z, structures::block_dripstone_block, structures::block_dripstone_block, -58, 20, 7, 28, 26ui64);
+		place_veins(chunk_x, chunk_z, structures::block_smooth_basalt, structures::block_smooth_basalt, -64, -44, 4, 24, 27ui64);
+		place_veins(chunk_x, chunk_z, structures::block_coal_ore, structures::block_deepslate_coal_ore, 8, 128, 22, 14, 1ui64);
+		place_veins(chunk_x, chunk_z, structures::block_copper_ore, structures::block_deepslate_copper_ore, -12, 96, 14, 12, 2ui64);
+		place_veins(chunk_x, chunk_z, structures::block_iron_ore, structures::block_deepslate_iron_ore, -48, 72, 18, 10, 3ui64);
+		place_veins(chunk_x, chunk_z, structures::block_gold_ore, structures::block_deepslate_gold_ore, -56, 24, 8, 8, 4ui64);
+		place_veins(chunk_x, chunk_z, structures::block_redstone_ore, structures::block_deepslate_redstone_ore, -60, 8, 10, 9, 5ui64);
+		place_veins(chunk_x, chunk_z, structures::block_lapis_ore, structures::block_deepslate_lapis_ore, -56, 20, 6, 7, 6ui64);
+		place_veins(chunk_x, chunk_z, structures::block_diamond_ore, structures::block_deepslate_diamond_ore, -62, -16, 5, 6, 7ui64);
+		place_veins(chunk_x, chunk_z, structures::block_emerald_ore, structures::block_deepslate_emerald_ore, -60, 40, 3, 3, 8ui64);
+		place_veins(chunk_x, chunk_z, structures::block_amethyst_block, structures::block_amethyst_block, -58, -10, 3, 10, 9ui64);
+		place_veins(chunk_x, chunk_z, structures::block_glowstone, structures::block_glowstone, -60, -30, 2, 5, 10ui64);
+		place_veins(chunk_x, chunk_z, structures::block_sculk, structures::block_sculk, -64, -40, 6, 16, 11ui64);
+		place_veins(chunk_x, chunk_z, structures::block_ancient_debris, structures::block_ancient_debris, -64, -50, 1, 2, 12ui64);
+
+		for (auto column{ 0u }; column < 256u; ++column)
+		{
+			auto y{ world_min_y + world_height - 1 };
 
 			while (y >= world_min_y && blocks[index(static_cast<std::int32_t>(column & 15u), y, static_cast<std::int32_t>(column >> 4u))] == structures::block_air)
 			{
@@ -54,54 +107,202 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	std::int32_t generator_c::get_surface(std::int32_t x, std::int32_t z) const
+	structures::spawn_s generator_c::get_spawn() const
 	{
-		auto continent{ fractal(x, z, 4u, 1.0 / 720.0, seed_low + 11u) };
-		auto hills{ fractal(x, z, 4u, 1.0 / 160.0, seed_low + 23u) };
-		auto mask{ std::clamp((fractal(x, z, 3u, 1.0 / 900.0, seed_low + 37u) - 0.08) * 3.0, 0.0, 1.0) };
-		auto ridge{ 1.0 - std::abs(fractal(x, z, 4u, 1.0 / 260.0, seed_low + 41u)) };
-		auto land{ std::clamp((continent + 0.12) * 4.0, 0.0, 1.0) };
-		auto height{ 64.0 + continent * 34.0 + hills * (3.0 + 9.0 * land) + mask * land * ridge * ridge * 95.0 };
+		auto spot_x{ 0 };
+		auto spot_z{ 0 };
+		auto spot_y{ surface_height(0, 0) };
+		auto found{ false };
 
-		return std::clamp(static_cast<std::int32_t>(height), world_min_y + 8, 300);
+		for (auto distance{ 0 }; distance <= gen_spawn_search && !found; distance += gen_spawn_step)
+		{
+			for (auto x{ -distance }; x <= distance && !found; x += gen_spawn_step)
+			{
+				for (auto z{ -distance }; z <= distance && !found; z += std::abs(x) == distance ? gen_spawn_step : distance * 2)
+				{
+					if (auto height{ surface_height(x, z) }; height > gen_sea_level + 1 && height < gen_snow_line - 14 && carve_density(static_cast<std::float_t>(x), static_cast<std::float_t>(height), static_cast<std::float_t>(z)) < 0.0f)
+					{
+						spot_x = x;
+						spot_y = height;
+						spot_z = z;
+						found = true;
+					}
+				}
+			}
+		}
+
+		return { static_cast<std::double_t>(spot_x) + 0.5, static_cast<std::double_t>(spot_y + 1), static_cast<std::double_t>(spot_z) + 0.5, 0.0f };
 	}
 	/*
 	//=====================================================================================
 	*/
-	std::uint32_t generator_c::get_biome(std::int32_t x, std::int32_t z, std::int32_t surface) const
+	std::uint64_t generator_c::get_seed() const
 	{
-		auto temperature{ fractal(x, z, 2u, 1.0 / 1200.0, seed_low + 53u) };
-		auto humidity{ fractal(x, z, 2u, 1.0 / 900.0, seed_low + 67u) };
-		auto biome{ biome_plains };
+		return world_seed;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::float_t generator_c::smooth(std::float_t t)
+	{
+		return t * t * (3.0f - 2.0f * t);
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::float_t generator_c::gradient(std::int64_t x, std::int64_t z, std::uint64_t salt) const
+	{
+		return static_cast<std::float_t>(functions::mix64(static_cast<std::uint64_t>(x) * 0x9E3779B97F4A7C15ui64 ^ static_cast<std::uint64_t>(z) * 0xC2B2AE3D27D4EB4Fui64 ^ (world_seed + salt)) >> 40u) / 8388608.0f - 1.0f;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::float_t generator_c::gradient3(std::int64_t x, std::int64_t y, std::int64_t z, std::uint64_t salt) const
+	{
+		return static_cast<std::float_t>(functions::mix64(static_cast<std::uint64_t>(x) * 0x9E3779B97F4A7C15ui64 ^ static_cast<std::uint64_t>(y) * 0x85EBCA77C2B2AE63ui64 ^ static_cast<std::uint64_t>(z) * 0xC2B2AE3D27D4EB4Fui64 ^ (world_seed + salt)) >> 40u) / 8388608.0f - 1.0f;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::float_t generator_c::noise2(std::float_t x, std::float_t z, std::uint64_t salt) const
+	{
+		auto base_x{ static_cast<std::int64_t>(std::floor(x)) };
+		auto base_z{ static_cast<std::int64_t>(std::floor(z)) };
+		auto fraction_x{ smooth(x - static_cast<std::float_t>(base_x)) };
+		auto fraction_z{ smooth(z - static_cast<std::float_t>(base_z)) };
+		auto first{ gradient(base_x, base_z, salt) };
+		auto second{ gradient(base_x, base_z + 1i64, salt) };
+		auto top{ first + (gradient(base_x + 1i64, base_z, salt) - first) * fraction_x };
+		auto bottom{ second + (gradient(base_x + 1i64, base_z + 1i64, salt) - second) * fraction_x };
 
-		if (surface < smp_sea_level - 1)
+		return top + (bottom - top) * fraction_z;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::float_t generator_c::noise3(std::float_t x, std::float_t y, std::float_t z, std::uint64_t salt) const
+	{
+		auto base_x{ static_cast<std::int64_t>(std::floor(x)) };
+		auto base_y{ static_cast<std::int64_t>(std::floor(y)) };
+		auto base_z{ static_cast<std::int64_t>(std::floor(z)) };
+		auto fraction_x{ smooth(x - static_cast<std::float_t>(base_x)) };
+		auto fraction_y{ smooth(y - static_cast<std::float_t>(base_y)) };
+		auto fraction_z{ smooth(z - static_cast<std::float_t>(base_z)) };
+		auto layer{ [&](std::int64_t rise) { auto first{ gradient3(base_x, base_y + rise, base_z, salt) }; auto second{ gradient3(base_x, base_y + rise, base_z + 1i64, salt) }; auto top{ first + (gradient3(base_x + 1i64, base_y + rise, base_z, salt) - first) * fraction_x }; auto bottom{ second + (gradient3(base_x + 1i64, base_y + rise, base_z + 1i64, salt) - second) * fraction_x }; return top + (bottom - top) * fraction_z; } };
+		auto lower{ layer(0i64) };
+
+		return lower + (layer(1i64) - lower) * fraction_y;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::float_t generator_c::fractal2(std::float_t x, std::float_t z, std::uint32_t octaves, std::float_t frequency, std::uint64_t salt) const
+	{
+		auto total{ 0.0f };
+		auto amplitude{ 1.0f };
+		auto sum{ 0.0f };
+
+		for (auto octave{ 0u }; octave < octaves; ++octave)
 		{
-			biome = biome_ocean;
+			total += noise2(x * frequency, z * frequency, salt + static_cast<std::uint64_t>(octave) * 7919ui64) * amplitude;
+			sum += amplitude;
+			amplitude *= 0.5f;
+			frequency *= 2.0f;
 		}
 
-		else if (surface > 128)
+		return total / sum;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::int32_t generator_c::surface_height(std::int32_t x, std::int32_t z) const
+	{
+		auto plain_x{ static_cast<std::float_t>(x) };
+		auto plain_z{ static_cast<std::float_t>(z) };
+		auto warp_x{ plain_x + fractal2(plain_x, plain_z, 2u, 1.0f / 190.0f, 31ui64) * 80.0f };
+		auto warp_z{ plain_z + fractal2(plain_x, plain_z, 2u, 1.0f / 190.0f, 37ui64) * 80.0f };
+		auto raw_mask{ std::clamp((fractal2(warp_x, warp_z, 3u, 1.0f / 760.0f, 23ui64) - 0.02f) / 0.30f, 0.0f, 1.0f) };
+		auto mask{ raw_mask * raw_mask };
+		auto ridged{ 1.0f - std::fabs(fractal2(warp_x, warp_z, 5u, 1.0f / 260.0f, 19ui64)) };
+		auto peaks{ ridged * ridged * ridged * mask * 185.0f };
+
+		if (mask > 0.25f)
 		{
-			biome = biome_mountain;
+			peaks += std::floor(fractal2(warp_x, warp_z, 2u, 1.0f / 90.0f, 29ui64) * 4.0f) * 3.0f;
 		}
 
-		else if (surface <= smp_sea_level + 1 && temperature > -0.18)
+		return std::clamp(static_cast<std::int32_t>(static_cast<std::float_t>(gen_sea_level) + 12.0f + fractal2(warp_x, warp_z, 4u, 1.0f / 1100.0f, 11ui64) * 30.0f + fractal2(warp_x, warp_z, 4u, 1.0f / 240.0f, 13ui64) * 17.0f + fractal2(warp_x, warp_z, 3u, 1.0f / 64.0f, 17ui64) * 5.0f + peaks), world_min_y + 6, world_min_y + world_height - 40);
+	}
+	/*
+	//=====================================================================================
+	*/
+	structures::biome_e generator_c::biome_at(std::int32_t x, std::int32_t z) const
+	{
+		return biome_for(x, z, surface_height(x, z));
+	}
+	/*
+	//=====================================================================================
+	*/
+	structures::biome_e generator_c::biome_for(std::int32_t x, std::int32_t z, std::int32_t height) const
+	{
+		auto temperature{ fractal2(static_cast<std::float_t>(x), static_cast<std::float_t>(z), 3u, 1.0f / 720.0f, 101ui64) };
+		auto humidity{ fractal2(static_cast<std::float_t>(x), static_cast<std::float_t>(z), 3u, 1.0f / 560.0f, 202ui64) };
+		auto oddity{ fractal2(static_cast<std::float_t>(x), static_cast<std::float_t>(z), 2u, 1.0f / 1400.0f, 303ui64) };
+		auto biome{ oddity > 0.25f ? structures::biome_meadow : structures::biome_plains };
+
+		if (height < gen_sea_level - 2)
 		{
-			biome = biome_beach;
+			biome = oddity > 0.48f ? structures::biome_mushroom_fields : structures::biome_ocean;
 		}
 
-		else if (temperature < -0.18)
+		else if (height <= gen_sea_level + 1)
 		{
-			biome = biome_snowy;
+			biome = structures::biome_beach;
 		}
 
-		else if (temperature > 0.18 && humidity < 0.05)
+		else if (height > gen_snow_line + 18)
 		{
-			biome = biome_desert;
+			biome = structures::biome_jagged_peaks;
 		}
 
-		else if (humidity > 0.08)
+		else if (height > gen_snow_line - 14)
 		{
-			biome = biome_forest;
+			biome = temperature < 0.0f ? structures::biome_jagged_peaks : structures::biome_stony_peaks;
+		}
+
+		else if (temperature > 0.17f && humidity < -0.14f)
+		{
+			biome = structures::biome_desert;
+		}
+
+		else if (temperature > 0.17f && humidity < 0.10f)
+		{
+			biome = oddity > 0.10f ? structures::biome_badlands : structures::biome_savanna;
+		}
+
+		else if (temperature > 0.17f)
+		{
+			biome = structures::biome_jungle;
+		}
+
+		else if (temperature < -0.26f)
+		{
+			biome = humidity > 0.05f ? structures::biome_snowy_taiga : structures::biome_snowy_plains;
+		}
+
+		else if (humidity > 0.18f)
+		{
+			biome = height < gen_sea_level + 6 ? structures::biome_swamp : structures::biome_dark_forest;
+		}
+
+		else if (humidity > 0.06f)
+		{
+			biome = oddity > 0.15f ? structures::biome_birch_forest : structures::biome_forest;
+		}
+
+		else if (humidity > -0.08f)
+		{
+			biome = oddity < -0.20f ? structures::biome_cherry_grove : structures::biome_taiga;
 		}
 
 		return biome;
@@ -109,322 +310,87 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	structures::spawn_s generator_c::get_spawn() const
+	structures::biome_e generator_c::get_biome(std::uint32_t column) const
 	{
-		auto point{ find_spawn() };
-		return { static_cast<std::double_t>(point[0]) + 0.5, static_cast<std::double_t>(point[1]), static_cast<std::double_t>(point[2]) + 0.5, 0.0f };
+		return biomes[column];
 	}
 	/*
 	//=====================================================================================
 	*/
-	std::array<std::int32_t, 3u> generator_c::find_spawn() const
+	std::int32_t generator_c::get_ground(std::uint32_t column) const
 	{
-		std::array<std::int32_t, 3u> spawn{ 0, get_surface(0, 0) + 1, 0 };
-		auto found{ false };
-
-		for (auto distance{ 0 }; distance <= smp_spawn_search && found == false; distance += 8)
-		{
-			for (auto x{ -distance }; x <= distance && found == false; x += 8)
-			{
-				for (auto z : { -distance, distance })
-				{
-					if (auto surface{ get_surface(x, z) }; found == false && surface > smp_sea_level && get_biome(x, z, surface) != biome_ocean && get_biome(x, z, surface) != biome_mountain)
-					{
-						spawn = { x, surface + 1, z };
-						found = true;
-					}
-				}
-			}
-		}
-
-		return spawn;
+		return grounds[column];
 	}
 	/*
 	//=====================================================================================
 	*/
-	void generator_c::fill(std::int32_t chunk_x, std::int32_t chunk_z)
+	bool generator_c::site_clear(std::int32_t world_x, std::int32_t world_z) const
 	{
-		blocks.fill(structures::block_air);
-
-		for (auto z{ 0 }; z < 16; ++z)
-		{
-			for (auto x{ 0 }; x < 16; ++x)
-			{
-				auto world_x{ chunk_x * 16 + x };
-				auto world_z{ chunk_z * 16 + z };
-				auto surface{ get_surface(world_x, world_z) };
-				auto biome{ get_biome(world_x, world_z, surface) };
-				auto column{ static_cast<std::uint32_t>(z * 16 + x) };
-				surfaces[column] = surface;
-				biomes[column] = biome;
-
-				for (auto y{ world_min_y }; y <= std::max(surface, smp_sea_level - 1); ++y)
-				{
-					auto noise{ hash(world_x, y, world_z, seed_low) };
-					auto depth{ surface - y };
-					auto block{ structures::block_water };
-
-					if (y < world_min_y + 5 && noise % 5u >= static_cast<std::uint32_t>(y - world_min_y))
-					{
-						block = structures::block_bedrock;
-					}
-
-					else if (depth > 3)
-					{
-						block = (y < 0 || (y < 8 && static_cast<std::int32_t>(noise % 8u) > y)) ? structures::block_deepslate : structures::block_stone;
-					}
-
-					else if (depth > 0 && (biome == biome_desert || biome == biome_beach))
-					{
-						block = depth < 3 ? structures::block_sand : structures::block_sandstone;
-					}
-
-					else if (depth > 0 && biome == biome_ocean)
-					{
-						block = structures::block_sand;
-					}
-
-					else if (depth > 0 && biome == biome_mountain)
-					{
-						block = structures::block_stone;
-					}
-
-					else if (depth > 0)
-					{
-						block = structures::block_dirt;
-					}
-
-					else if (depth == 0 && biome == biome_ocean)
-					{
-						block = surface < smp_sea_level - 12 ? structures::block_gravel : ((noise & 7u) ? structures::block_sand : structures::block_clay);
-					}
-
-					else if (depth == 0 && (biome == biome_desert || biome == biome_beach))
-					{
-						block = structures::block_sand;
-					}
-
-					else if (depth == 0 && biome == biome_mountain)
-					{
-						block = surface > 150 ? structures::block_snow_block : structures::block_stone;
-					}
-
-					else if (depth == 0)
-					{
-						block = structures::block_grass;
-					}
-
-					else if (biome == biome_snowy && y == smp_sea_level - 1)
-					{
-						block = structures::block_ice;
-					}
-
-					blocks[index(x, y, z)] = block;
-				}
-			}
-		}
+		return features.site_clear(world_x, world_z);
 	}
 	/*
 	//=====================================================================================
 	*/
-	void generator_c::carve(std::int32_t chunk_x, std::int32_t chunk_z)
+	std::uint8_t generator_c::get_block(std::int32_t x, std::int32_t y, std::int32_t z) const
 	{
-		for (auto y{ 0 }; y < 49; ++y)
+		auto block{ static_cast<std::uint8_t>(structures::block_air) };
+
+		if (x >= 0 && x < 16 && z >= 0 && z < 16 && y >= world_min_y && y < world_min_y + world_height)
 		{
-			for (auto z{ 0 }; z < 5; ++z)
-			{
-				for (auto x{ 0 }; x < 5; ++x)
-				{
-					caves[static_cast<std::size_t>((y * 5 + z) * 5 + x)] = get_cave(chunk_x * 16 + x * 4, world_min_y + y * 8, chunk_z * 16 + z * 4);
-				}
-			}
+			block = blocks[index(x, y, z)];
 		}
 
-		for (auto z{ 0 }; z < 16; ++z)
-		{
-			for (auto x{ 0 }; x < 16; ++x)
-			{
-				auto fraction_x{ static_cast<std::double_t>(x & 3) * 0.25 };
-				auto fraction_z{ static_cast<std::double_t>(z & 3) * 0.25 };
-
-				for (auto y{ smp_cave_floor }; y < surfaces[static_cast<std::size_t>(z * 16 + x)] - 5; ++y)
-				{
-					auto cell{ (y - world_min_y) >> 3 };
-					auto fraction_y{ static_cast<std::double_t>((y - world_min_y) & 7) * 0.125 };
-					auto sample{ [this, cell, x, z](std::int32_t dy, std::int32_t dz, std::int32_t dx) { return caves[static_cast<std::size_t>(((cell + dy) * 5 + (z >> 2) + dz) * 5 + (x >> 2) + dx)]; } };
-					auto low{ std::lerp(std::lerp(sample(0, 0, 0), sample(0, 0, 1), fraction_x), std::lerp(sample(0, 1, 0), sample(0, 1, 1), fraction_x), fraction_z) };
-					auto high{ std::lerp(std::lerp(sample(1, 0, 0), sample(1, 0, 1), fraction_x), std::lerp(sample(1, 1, 0), sample(1, 1, 1), fraction_x), fraction_z) };
-
-					if (std::lerp(low, high, fraction_y) < 0.0 && blocks[index(x, y, z)] != structures::block_water)
-					{
-						blocks[index(x, y, z)] = y < smp_lava_level ? structures::block_lava : structures::block_air;
-					}
-				}
-			}
-		}
+		return block;
 	}
 	/*
 	//=====================================================================================
 	*/
-	void generator_c::place_ores(std::int32_t chunk_x, std::int32_t chunk_z)
-	{
-		auto random{ world_seed ^ (static_cast<std::uint64_t>(hash(chunk_x, 3, chunk_z, seed_low)) << 32u) };
-
-		for (auto ore{ 0u }; ore < std::size(ore_blocks); ++ore)
-		{
-			for (auto vein{ 0u }; vein < ore_veins[ore]; ++vein)
-			{
-				auto x{ static_cast<std::int32_t>(next(random) % 16u) };
-				auto z{ static_cast<std::int32_t>(next(random) % 16u) };
-				auto y{ ore_bottoms[ore] + static_cast<std::int32_t>(next(random) % static_cast<std::uint64_t>(ore_tops[ore] - ore_bottoms[ore])) };
-
-				for (auto step{ 0u }; step < ore_sizes[ore]; ++step)
-				{
-					auto inside{ x >= 0 && x < 16 && z >= 0 && z < 16 && y >= world_min_y && y < world_min_y + world_height };
-
-					if (inside && blocks[index(x, y, z)] == structures::block_stone)
-					{
-						blocks[index(x, y, z)] = static_cast<std::uint8_t>(ore_blocks[ore]);
-					}
-
-					else if (inside && blocks[index(x, y, z)] == structures::block_deepslate)
-					{
-						blocks[index(x, y, z)] = static_cast<std::uint8_t>(ore_blocks[ore] + deepslate_ore_offset);
-					}
-
-					auto walk{ next(random) };
-					x += static_cast<std::int32_t>(walk % 3u) - 1;
-					y += static_cast<std::int32_t>((walk >> 8u) % 3u) - 1;
-					z += static_cast<std::int32_t>((walk >> 16u) % 3u) - 1;
-				}
-			}
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
-	void generator_c::decorate(std::int32_t chunk_x, std::int32_t chunk_z)
-	{
-		for (auto z{ 0 }; z < 16; ++z)
-		{
-			for (auto x{ 0 }; x < 16; ++x)
-			{
-				auto column{ static_cast<std::size_t>(z * 16 + x) };
-				auto surface{ surfaces[column] };
-				auto top{ blocks[index(x, surface, z)] };
-				auto roll{ hash(chunk_x * 16 + x, 1, chunk_z * 16 + z, seed_low + 101u) % 1000u };
-
-				if (top == structures::block_grass && biomes[column] == biome_snowy)
-				{
-					put(x, surface + 1, z, structures::block_snow, false);
-				}
-
-				else if (top == structures::block_grass && roll < 120u)
-				{
-					put(x, surface + 1, z, structures::block_short_grass, false);
-				}
-
-				else if (top == structures::block_grass && roll < 140u)
-				{
-					put(x, surface + 1, z, structures::block_dandelion, false);
-				}
-
-				else if (top == structures::block_grass && roll < 155u)
-				{
-					put(x, surface + 1, z, structures::block_poppy, false);
-				}
-
-				else if (top == structures::block_sand && biomes[column] == biome_desert && roll < 5u)
-				{
-					for (auto height{ 1u }; height <= 1u + roll % 3u; ++height)
-					{
-						put(x, surface + static_cast<std::int32_t>(height), z, structures::block_cactus, false);
-					}
-				}
-
-				else if (top == structures::block_sand && biomes[column] == biome_desert && roll < 12u)
-				{
-					put(x, surface + 1, z, structures::block_dead_bush, false);
-				}
-
-				else if (top == structures::block_snow_block)
-				{
-					put(x, surface + 1, z, structures::block_snow, false);
-				}
-			}
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
-	void generator_c::place_trees(std::int32_t chunk_x, std::int32_t chunk_z)
-	{
-		for (auto near_x{ chunk_x - 1 }; near_x <= chunk_x + 1; ++near_x)
-		{
-			for (auto near_z{ chunk_z - 1 }; near_z <= chunk_z + 1; ++near_z)
-			{
-				auto random{ world_seed ^ (static_cast<std::uint64_t>(hash(near_x, 7, near_z, seed_low)) << 32u) ^ static_cast<std::uint64_t>(hash(near_z, 9, near_x, seed_low)) };
-				auto middle{ get_surface(near_x * 16 + 8, near_z * 16 + 8) };
-				auto count{ biome_tree_counts[get_biome(near_x * 16 + 8, near_z * 16 + 8, middle)] + static_cast<std::uint32_t>(next(random) % 2u) };
-
-				for (auto tree{ 0u }; tree < count; ++tree)
-				{
-					auto x{ near_x * 16 + static_cast<std::int32_t>(next(random) % 16u) };
-					auto z{ near_z * 16 + static_cast<std::int32_t>(next(random) % 16u) };
-					auto surface{ get_surface(x, z) };
-					auto biome{ get_biome(x, z, surface) };
-					auto kind{ (biome == biome_snowy || biome == biome_mountain) ? structures::block_spruce_log : ((biome == biome_forest && next(random) % 4u == 0u) ? structures::block_birch_log : structures::block_oak_log) };
-
-					if (surface > smp_sea_level && surface < 140 && (biome == biome_plains || biome == biome_forest || biome == biome_snowy || biome == biome_mountain))
-					{
-						place_tree(x - chunk_x * 16, surface + 1, z - chunk_z * 16, kind, random);
-					}
-				}
-			}
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
-	void generator_c::place_tree(std::int32_t base_x, std::int32_t base_y, std::int32_t base_z, std::uint32_t kind, std::uint64_t& random)
-	{
-		auto leaves{ static_cast<std::uint8_t>(kind + 1u) };
-		auto spruce{ kind == structures::block_spruce_log };
-		auto trunk{ static_cast<std::int32_t>((spruce ? 6u : 4u) + next(random) % 3u) };
-
-		put(base_x, base_y - 1, base_z, structures::block_dirt, true);
-
-		for (auto layer{ spruce ? 2 : trunk - 3 }; layer <= trunk; ++layer)
-		{
-			auto radius{ spruce ? ((trunk - layer) % 2 == 0 ? 1 : std::min(2, 1 + (trunk - layer) / 3)) : (layer >= trunk - 1 ? 1 : 2) };
-
-			for (auto x{ -radius }; x <= radius; ++x)
-			{
-				for (auto z{ -radius }; z <= radius; ++z)
-				{
-					if (std::abs(x) != radius || std::abs(z) != radius || (radius == 2 && next(random) % 2u == 0u))
-					{
-						put(base_x + x, base_y + layer, base_z + z, leaves, false);
-					}
-				}
-			}
-		}
-
-		put(base_x, base_y + trunk + 1, base_z, leaves, false);
-
-		for (auto y{ 0 }; y < trunk; ++y)
-		{
-			put(base_x, base_y + y, base_z, static_cast<std::uint8_t>(kind), true);
-		}
-	}
-	/*
-	//=====================================================================================
-	*/
-	void generator_c::put(std::int32_t x, std::int32_t y, std::int32_t z, std::uint8_t block, bool replace)
+	void generator_c::set_block(std::int32_t x, std::int32_t y, std::int32_t z, std::uint8_t block)
 	{
 		if (x >= 0 && x < 16 && z >= 0 && z < 16 && y >= world_min_y && y < world_min_y + world_height)
 		{
-			if (auto& cell{ blocks[index(x, y, z)] }; (replace && cell != structures::block_bedrock) || cell == structures::block_air || cell == structures::block_short_grass || cell == structures::block_snow)
+			blocks[index(x, y, z)] = block;
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	bool generator_c::inside(std::int32_t world_x, std::int32_t world_z) const
+	{
+		return (world_x >= base_x && world_x < base_x + 16 && world_z >= base_z && world_z < base_z + 16);
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint8_t generator_c::peek(std::int32_t world_x, std::int32_t y, std::int32_t world_z) const
+	{
+		auto block{ static_cast<std::uint8_t>(structures::block_stone) };
+
+		if (y > world_min_y && y < world_min_y + world_height && inside(world_x, world_z))
+		{
+			block = blocks[index(world_x - base_x, y, world_z - base_z)];
+		}
+
+		return block;
+	}
+	/*
+	//=====================================================================================
+	*/
+	void generator_c::solid(std::int32_t world_x, std::int32_t y, std::int32_t world_z, std::uint8_t block)
+	{
+		if (y > world_min_y && y < world_min_y + world_height && inside(world_x, world_z))
+		{
+			blocks[index(world_x - base_x, y, world_z - base_z)] = block;
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void generator_c::soft(std::int32_t world_x, std::int32_t y, std::int32_t world_z, std::uint8_t block)
+	{
+		if (y > world_min_y && y < world_min_y + world_height && inside(world_x, world_z))
+		{
+			if (auto& cell{ blocks[index(world_x - base_x, y, world_z - base_z)] }; cell == structures::block_air)
 			{
 				cell = block;
 			}
@@ -433,101 +399,261 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
-	std::double_t generator_c::get_cave(std::int32_t x, std::int32_t y, std::int32_t z) const
+	std::float_t generator_c::tunnel_band(std::float_t x, std::float_t y, std::float_t z, std::float_t horizontal, std::float_t vertical, std::float_t width, std::float_t fill, std::uint64_t salt) const
 	{
-		auto first{ noise_3d(x / 48.0, y / 28.0, z / 48.0, seed_low + 71u) };
-		auto second{ noise_3d(x / 48.0, y / 28.0, z / 48.0, seed_low + 83u) };
-		auto cavern{ 0.62 - noise_3d(x / 96.0, y / 56.0, z / 96.0, seed_low + 97u) };
-
-		return std::min(first * first + second * second - 0.012, cavern);
+		return std::max(0.0f, width - std::fabs(noise3(x / horizontal, y / vertical, z / horizontal, salt))) * std::max(0.0f, width - std::fabs(noise3(x / horizontal, y / vertical, z / horizontal, salt + 7ui64))) / (width * width * fill) - 1.0f;
 	}
 	/*
 	//=====================================================================================
 	*/
-	std::uint32_t generator_c::hash(std::int32_t x, std::int32_t y, std::int32_t z, std::uint32_t seed)
+	std::float_t generator_c::carve_density(std::float_t x, std::float_t y, std::float_t z) const
 	{
-		auto value{ seed ^ (static_cast<std::uint32_t>(x) * 0x27D4EB2Du) ^ (static_cast<std::uint32_t>(y) * 0x165667B1u) ^ (static_cast<std::uint32_t>(z) * 0x9E3779B1u) };
-		value ^= value >> 15u;
-		value *= 0x85EBCA6Bu;
-		value ^= value >> 13u;
-		value *= 0xC2B2AE35u;
-		value ^= value >> 16u;
+		auto density{ -1.0f };
+
+		if (y >= static_cast<std::float_t>(world_min_y + 2))
+		{
+			auto deep{ std::clamp((16.0f - y) / 78.0f, 0.0f, 1.0f) };
+			auto tighten{ deep * 0.026f };
+
+			density = tunnel_band(x, y, z, 148.0f, 30.0f, 0.082f - tighten * 0.5f, 0.235f, 401ui64);
+			density = std::max(density, tunnel_band(x, y, z, 88.0f, 18.0f, 0.074f - tighten * 0.5f, 0.225f, 411ui64));
+			density = std::max(density, tunnel_band(x, y, z, 240.0f, 48.0f, 0.068f - tighten * 0.3f, 0.210f, 421ui64));
+			density = std::max(density, tunnel_band(x, y, z, 60.0f, 13.0f, 0.048f + deep * 0.014f, 0.200f, 461ui64));
+			density += noise3(x / 8.5f, y / 6.5f, z / 8.5f, 481ui64) * 0.62f + noise3(x / 3.5f, y / 3.0f, z / 3.5f, 482ui64) * 0.24f;
+
+			if (y < -18.0f)
+			{
+				auto region{ noise3(x / 196.0f, y / 74.0f, z / 196.0f, 403ui64) };
+				auto gate{ 0.48f - std::min(1.0f, (-18.0f - y) / 44.0f) * 0.08f };
+
+				if (region > gate)
+				{
+					density = std::max(density, (noise3(x / 33.0f, y / 19.0f, z / 33.0f, 404ui64) - (0.70f - std::min(1.0f, (region - gate) / 0.20f) * 0.20f + deep * 0.10f)) * 4.0f);
+				}
+			}
+
+			if (y > -58.0f && y < 46.0f)
+			{
+				auto seam{ std::fabs(noise2(x / 210.0f, z / 210.0f, 501ui64)) };
+				auto width{ 0.009f + noise2(x / 70.0f, z / 70.0f, 502ui64) * 0.006f * 0.6f };
+				auto centre{ (y + 6.0f) / 52.0f };
+
+				if (seam < width && 1.0f - centre * centre > 0.0f)
+				{
+					density = std::max(density, ((width - seam) / width * (1.0f - centre * centre) * 3.4f) - 0.55f);
+				}
+			}
+		}
+
+		return density;
+	}
+	/*
+	//=====================================================================================
+	*/
+	bool generator_c::lava_here(std::int32_t x, std::int32_t y, std::int32_t z) const
+	{
+		return (y < gen_lava_level && noise2(static_cast<std::float_t>(x) / 124.0f, static_cast<std::float_t>(z) / 124.0f, 451ui64) + noise2(static_cast<std::float_t>(x) / 31.0f, static_cast<std::float_t>(z) / 31.0f, 452ui64) * 0.06f > 0.42f - static_cast<std::float_t>(gen_lava_level - y) / 6.0f * 0.10f);
+	}
+	/*
+	//=====================================================================================
+	*/
+	void generator_c::sample_caves(std::int32_t highest)
+	{
+		auto levels{ std::min(gen_cave_levels, (highest - world_min_y) / gen_cave_step + 2) };
+
+		for (auto grid_z{ 0 }; grid_z < gen_cave_span; ++grid_z)
+		{
+			for (auto grid_x{ 0 }; grid_x < gen_cave_span; ++grid_x)
+			{
+				for (auto level{ 0 }; level < levels; ++level)
+				{
+					caves[static_cast<std::size_t>((level * gen_cave_span + grid_z) * gen_cave_span + grid_x)] = carve_density(static_cast<std::float_t>(base_x + grid_x * gen_cave_step), static_cast<std::float_t>(world_min_y + level * gen_cave_step), static_cast<std::float_t>(base_z + grid_z * gen_cave_step));
+				}
+			}
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::float_t generator_c::cave_at(std::int32_t local_x, std::int32_t y, std::int32_t local_z) const
+	{
+		auto level{ (y - world_min_y) / gen_cave_step };
+		auto value{ -1.0f };
+
+		if (level >= 0 && level < gen_cave_levels - 1)
+		{
+			auto fraction_x{ static_cast<std::float_t>(local_x % gen_cave_step) / static_cast<std::float_t>(gen_cave_step) };
+			auto fraction_z{ static_cast<std::float_t>(local_z % gen_cave_step) / static_cast<std::float_t>(gen_cave_step) };
+			auto fraction_y{ static_cast<std::float_t>((y - world_min_y) % gen_cave_step) / static_cast<std::float_t>(gen_cave_step) };
+			auto layer{ [&](std::int32_t rise) { auto cell{ static_cast<std::size_t>(((level + rise) * gen_cave_span + local_z / gen_cave_step) * gen_cave_span + local_x / gen_cave_step) }; auto top{ caves[cell] + (caves[cell + 1u] - caves[cell]) * fraction_x }; auto bottom{ caves[cell + gen_cave_span] + (caves[cell + gen_cave_span + 1u] - caves[cell + gen_cave_span]) * fraction_x }; return top + (bottom - top) * fraction_z; } };
+			auto lower{ layer(0) };
+			value = lower + (layer(1) - lower) * fraction_y;
+		}
 
 		return value;
 	}
 	/*
 	//=====================================================================================
 	*/
-	std::uint64_t generator_c::next(std::uint64_t& state)
+	void generator_c::fill_column(std::int32_t local_x, std::int32_t local_z)
 	{
-		state += 0x9E3779B97F4A7C15ui64;
-		auto value{ state };
-		value = (value ^ (value >> 30u)) * 0xBF58476D1CE4E5B9ui64;
-		value = (value ^ (value >> 27u)) * 0x94D049BB133111EBui64;
+		auto column{ static_cast<std::uint32_t>(local_z * 16 + local_x) };
+		auto height{ heights[column] };
 
-		return value ^ (value >> 31u);
-	}
-	/*
-	//=====================================================================================
-	*/
-	std::double_t generator_c::noise_2d(std::double_t x, std::double_t z, std::uint32_t seed)
-	{
-		auto base_x{ std::floor(x) };
-		auto base_z{ std::floor(z) };
-		auto cell_x{ static_cast<std::int32_t>(base_x) };
-		auto cell_z{ static_cast<std::int32_t>(base_z) };
-		auto offset_x{ x - base_x };
-		auto offset_z{ z - base_z };
-		auto corner{ [seed](std::int32_t at_x, std::int32_t at_z, std::double_t delta_x, std::double_t delta_z) { const auto& gradient{ noise_gradients_2d[hash(at_x, 0, at_z, seed) & 7u] }; return gradient[0] * delta_x + gradient[1] * delta_z; } };
-		auto fade_x{ offset_x * offset_x * offset_x * (offset_x * (offset_x * 6.0 - 15.0) + 10.0) };
-		auto fade_z{ offset_z * offset_z * offset_z * (offset_z * (offset_z * 6.0 - 15.0) + 10.0) };
-		auto bottom{ std::lerp(corner(cell_x, cell_z, offset_x, offset_z), corner(cell_x + 1, cell_z, offset_x - 1.0, offset_z), fade_x) };
-		auto top{ std::lerp(corner(cell_x, cell_z + 1, offset_x, offset_z - 1.0), corner(cell_x + 1, cell_z + 1, offset_x - 1.0, offset_z - 1.0), fade_x) };
+		blocks[index(local_x, world_min_y, local_z)] = structures::block_bedrock;
 
-		return std::lerp(bottom, top, fade_z) * 1.414;
-	}
-	/*
-	//=====================================================================================
-	*/
-	std::double_t generator_c::noise_3d(std::double_t x, std::double_t y, std::double_t z, std::uint32_t seed)
-	{
-		auto base_x{ std::floor(x) };
-		auto base_y{ std::floor(y) };
-		auto base_z{ std::floor(z) };
-		auto cell_x{ static_cast<std::int32_t>(base_x) };
-		auto cell_y{ static_cast<std::int32_t>(base_y) };
-		auto cell_z{ static_cast<std::int32_t>(base_z) };
-		auto offset_x{ x - base_x };
-		auto offset_y{ y - base_y };
-		auto offset_z{ z - base_z };
-		auto corner{ [seed, cell_x, cell_y, cell_z, offset_x, offset_y, offset_z](std::int32_t dx, std::int32_t dy, std::int32_t dz) { const auto& gradient{ noise_gradients_3d[hash(cell_x + dx, cell_y + dy, cell_z + dz, seed) & 15u] }; return gradient[0] * (offset_x - dx) + gradient[1] * (offset_y - dy) + gradient[2] * (offset_z - dz); } };
-		auto fade{ [](std::double_t t) { return t * t * t * (t * (t * 6.0 - 15.0) + 10.0); } };
-		auto fade_x{ fade(offset_x) };
-		auto fade_y{ fade(offset_y) };
-		auto fade_z{ fade(offset_z) };
-		auto low{ std::lerp(std::lerp(corner(0, 0, 0), corner(1, 0, 0), fade_x), std::lerp(corner(0, 0, 1), corner(1, 0, 1), fade_x), fade_z) };
-		auto high{ std::lerp(std::lerp(corner(0, 1, 0), corner(1, 1, 0), fade_x), std::lerp(corner(0, 1, 1), corner(1, 1, 1), fade_x), fade_z) };
-
-		return std::lerp(low, high, fade_y);
-	}
-	/*
-	//=====================================================================================
-	*/
-	std::double_t generator_c::fractal(std::double_t x, std::double_t z, std::uint32_t octaves, std::double_t frequency, std::uint32_t seed)
-	{
-		auto total{ 0.0 };
-		auto amplitude{ 1.0 };
-		auto weight{ 0.0 };
-
-		for (auto octave{ 0u }; octave < octaves; ++octave)
+		for (auto y{ world_min_y + 1 }; y <= std::max(height, gen_sea_level); ++y)
 		{
-			total += noise_2d(x * frequency, z * frequency, seed + octave * 0x9E37u) * amplitude;
-			weight += amplitude;
-			amplitude *= 0.5;
-			frequency *= 2.0;
+			auto block{ y <= gen_deepslate_top ? structures::block_deepslate : structures::block_stone };
+
+			if (y > height)
+			{
+				block = structures::block_water;
+			}
+
+			else if (cave_at(local_x, y, local_z) > 0.0f)
+			{
+				block = lava_here(base_x + local_x, y, base_z + local_z) ? structures::block_lava : structures::block_air;
+			}
+
+			blocks[index(local_x, y, local_z)] = block;
 		}
 
-		return total / weight;
+		surface_column(local_x, local_z, height, biomes[column]);
+	}
+	/*
+	//=====================================================================================
+	*/
+	void generator_c::surface_column(std::int32_t local_x, std::int32_t local_z, std::int32_t height, structures::biome_e biome)
+	{
+		auto top{ structures::block_grass_block };
+		auto filler{ structures::block_dirt };
+		auto depth{ 4 };
+
+		switch (biome)
+		{
+		case structures::biome_desert:
+			top = structures::block_sand;
+			filler = structures::block_sandstone;
+			depth = 6;
+			break;
+
+		case structures::biome_beach:
+			top = structures::block_sand;
+			filler = structures::block_sandstone;
+			break;
+
+		case structures::biome_badlands:
+			top = structures::block_red_terracotta;
+			filler = structures::block_orange_terracotta;
+			depth = 12;
+			break;
+
+		case structures::biome_savanna:
+			filler = structures::block_coarse_dirt;
+			break;
+
+		case structures::biome_snowy_plains:
+		case structures::biome_snowy_taiga:
+			top = structures::block_snow_block;
+			break;
+
+		case structures::biome_taiga:
+		case structures::biome_dark_forest:
+			top = structures::block_podzol;
+			break;
+
+		case structures::biome_swamp:
+			filler = structures::block_mud;
+			depth = 5;
+			break;
+
+		case structures::biome_mushroom_fields:
+			top = structures::block_mycelium;
+			break;
+
+		case structures::biome_ocean:
+			top = structures::block_gravel;
+			filler = structures::block_clay;
+			depth = 3;
+			break;
+
+		case structures::biome_stony_peaks:
+			top = structures::block_stone;
+			filler = structures::block_tuff;
+			depth = 3;
+			break;
+
+		case structures::biome_jagged_peaks:
+			top = structures::block_snow_block;
+			filler = structures::block_stone;
+			depth = 3;
+			break;
+		}
+
+		if (height < gen_sea_level)
+		{
+			top = structures::block_gravel;
+		}
+
+		else if (height >= gen_snow_line && biome != structures::biome_jagged_peaks && biome != structures::biome_stony_peaks)
+		{
+			top = structures::block_snow_block;
+		}
+
+		if (get_block(local_x, height, local_z) != structures::block_air)
+		{
+			set_block(local_x, height, local_z, top);
+		}
+
+		for (auto y{ height - 1 }; y >= height - depth && y > world_min_y; --y)
+		{
+			if (get_block(local_x, y, local_z) == structures::block_stone)
+			{
+				set_block(local_x, y, local_z, filler);
+			}
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void generator_c::place_veins(std::int32_t chunk_x, std::int32_t chunk_z, std::uint8_t stone, std::uint8_t deepslate, std::int32_t min_y, std::int32_t max_y, std::int32_t attempts, std::int32_t size, std::uint64_t salt)
+	{
+		auto state{ functions::mix64(static_cast<std::uint64_t>(chunk_x) * 341873128712ui64 + static_cast<std::uint64_t>(chunk_z) * 132897987541ui64 + world_seed + salt) };
+
+		for (auto attempt{ 0 }; attempt < attempts; ++attempt)
+		{
+			state = functions::mix64(state + gen_golden);
+
+			if (max_y > min_y)
+			{
+				auto origin_x{ static_cast<std::int32_t>(state % 16ui64) };
+				auto origin_z{ static_cast<std::int32_t>((state >> 8u) % 16ui64) };
+				auto origin_y{ min_y + static_cast<std::int32_t>((state >> 16u) % static_cast<std::uint64_t>(max_y - min_y)) };
+
+				for (auto block{ 0 }; block < size; ++block)
+				{
+					state = functions::mix64(state + gen_weyl);
+
+					auto x{ origin_x + static_cast<std::int32_t>((state >> 4u) % 3ui64) - 1 };
+					auto y{ origin_y + static_cast<std::int32_t>((state >> 12u) % 3ui64) - 1 };
+					auto z{ origin_z + static_cast<std::int32_t>((state >> 20u) % 3ui64) - 1 };
+
+					if (x >= 0 && x <= 15 && z >= 0 && z <= 15 && y > world_min_y && y < world_min_y + world_height)
+					{
+						if (auto& cell{ blocks[index(x, y, z)] }; cell == structures::block_stone)
+						{
+							cell = stone;
+						}
+
+						else if (cell == structures::block_deepslate)
+						{
+							cell = deepslate;
+						}
+					}
+				}
+			}
+		}
 	}
 	/*
 	//=====================================================================================
