@@ -36,10 +36,76 @@ namespace mc
 			chat.notify(player, "you are not an operator");
 		}
 
+		else if (name == smp_command)
+		{
+			travel(player, structures::world_smp);
+		}
+
+		else if (name == spawn_command)
+		{
+			travel(player, structures::world_spawn);
+		}
+
+		else if (name == roll_command && config.is_operator(player.name))
+		{
+			roll(player);
+		}
+
+		else if (name == roll_command)
+		{
+			chat.notify(player, "you are not an operator");
+		}
+
 		else
 		{
 			chat.notify(player, "unknown command");
 		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void command_c::travel(structures::player_s& player, structures::world_e target)
+	{
+		if (player.edition == structures::edition_java)
+		{
+			java_play.switch_world(*static_cast<structures::client_s*>(player.link), target);
+			chat.notify(player, std::string{ "welcome to " }.append(world_names[target]));
+		}
+
+		else
+		{
+			chat.notify(player, "the smp is coming to bedrock soon");
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void command_c::roll(structures::player_s& player)
+	{
+		config.smp_seed = functions::make_seed();
+		config.store();
+		generator.set_seed(config.smp_seed);
+		java_chunk.reset_world(structures::world_smp);
+		world.set_spawn(structures::world_smp, generator.get_spawn());
+
+		std::vector<structures::player_s*> travellers{};
+
+		for (auto other : world.get_players())
+		{
+			if (other->world == structures::world_smp && other->edition == structures::edition_java)
+			{
+				travellers.push_back(other);
+			}
+		}
+
+		for (auto other : travellers)
+		{
+			java_play.switch_world(*static_cast<structures::client_s*>(other->link), structures::world_smp);
+			chat.notify(*other, "the smp map was rolled");
+		}
+
+		utils::log.write(color_play, "[world](roll) '%s' new smp seed %llu", player.name.c_str(), config.smp_seed);
+		chat.notify(player, "smp rolled, new seed " + std::to_string(config.smp_seed));
 	}
 	/*
 	//=====================================================================================

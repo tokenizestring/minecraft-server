@@ -17,6 +17,7 @@ namespace mc
 		void handle(structures::client_s& client, std::int32_t id, structures::reader_s& in);
 		void tick(structures::client_s& client, std::uint64_t now);
 		void leave(structures::client_s& client);
+		void switch_world(structures::client_s& client, structures::world_e target);
 
 	private:
 

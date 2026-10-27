@@ -22,6 +22,7 @@ namespace mc
 		client.player.y = spawn_y;
 		client.player.z = spawn_z;
 		client.player.yaw = spawn_yaw;
+		client.player.world = structures::world_spawn;
 		client.player.on_ground = true;
 		client.player.edition = structures::edition_java;
 		client.player.platform = bedrock_platform_java;
@@ -39,7 +40,6 @@ namespace mc
 
 		utils::log.write(color_play, "[play](join) '%s' on '%s' entity %d at %.1f %.1f %.1f", client.name.c_str(), functions::get_version_name(client.protocol), client.entity_id, spawn_x, spawn_y, spawn_z);
 		world.add(client.player);
-		npc.show(client.player);
 		chat.join(client.player);
 	}
 	/*
@@ -104,8 +104,25 @@ namespace mc
 		functions::write_u64(packet, functions::encode_position_1_8(spawn_block_x, spawn_block_y + 1, spawn_block_z));
 		network.send(client, packet);
 
-		network.send_shared(client, java_chunk.get_1_8());
+		java_chunk.send_view(client);
 		teleport(client);
+	}
+	/*
+	//=====================================================================================
+	*/
+	void java_play_c::switch_world(structures::client_s& client, structures::world_e target)
+	{
+		const auto& spawn{ world.get_spawn(target) };
+
+		java_chunk.clear_view(client);
+		world.change(client.player, target);
+		client.player.x = spawn.x;
+		client.player.y = spawn.y;
+		client.player.z = spawn.z;
+		client.player.yaw = spawn.yaw;
+		java_chunk.send_view(client);
+		teleport(client);
+		world.moved(client.player);
 	}
 	/*
 	//=====================================================================================
@@ -261,12 +278,13 @@ namespace mc
 	*/
 	void java_play_c::apply_movement(structures::client_s& client, std::double_t x, std::double_t y, std::double_t z, std::float_t yaw, std::float_t pitch, bool on_ground)
 	{
-		if (y < rescue_y)
+		if (y < world_rescue_heights[client.player.world])
 		{
+			const auto& spawn{ world.get_spawn(client.player.world) };
+			client.player.x = spawn.x;
+			client.player.y = spawn.y;
+			client.player.z = spawn.z;
 			teleport(client);
-			client.player.x = spawn_x;
-			client.player.y = spawn_y;
-			client.player.z = spawn_z;
 			world.moved(client.player);
 			utils::log.write(color_play, "[play](rescue) '%s' fell into the void", client.name.c_str());
 		}
@@ -282,29 +300,27 @@ namespace mc
 			world.moved(client.player);
 		}
 
-		if (functions::is_modern(client.family))
-		{
-			java_chunk.update_view(client);
-		}
+		java_chunk.update_view(client);
 	}
 	/*
 	//=====================================================================================
 	*/
 	void java_play_c::teleport(structures::client_s& client)
 	{
+		const auto& spawn{ world.get_spawn(client.player.world) };
 		packet.clear();
 
 		if (functions::is_modern(client.family))
 		{
 			functions::write_varint(packet, client.layout.play_out_position);
 			functions::write_varint(packet, client.entity_id);
-			functions::write_f64(packet, spawn_x);
-			functions::write_f64(packet, spawn_y);
-			functions::write_f64(packet, spawn_z);
+			functions::write_f64(packet, spawn.x);
+			functions::write_f64(packet, spawn.y);
+			functions::write_f64(packet, spawn.z);
 			functions::write_f64(packet, 0.0);
 			functions::write_f64(packet, 0.0);
 			functions::write_f64(packet, 0.0);
-			functions::write_f32(packet, spawn_yaw);
+			functions::write_f32(packet, spawn.yaw);
 			functions::write_f32(packet, 0.0f);
 			functions::write_i32(packet, 0);
 		}
@@ -312,10 +328,10 @@ namespace mc
 		else
 		{
 			functions::write_varint(packet, v1_8_play_out_position);
-			functions::write_f64(packet, spawn_x);
-			functions::write_f64(packet, spawn_y);
-			functions::write_f64(packet, spawn_z);
-			functions::write_f32(packet, spawn_yaw);
+			functions::write_f64(packet, spawn.x);
+			functions::write_f64(packet, spawn.y);
+			functions::write_f64(packet, spawn.z);
+			functions::write_f32(packet, spawn.yaw);
 			functions::write_f32(packet, 0.0f);
 			functions::write_u8(packet, 0u);
 		}
