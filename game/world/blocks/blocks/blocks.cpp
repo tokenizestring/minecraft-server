@@ -46,6 +46,7 @@ namespace mc
 
 		load_placed();
 		load_light();
+		load_instant();
 
 		if (count == structures::block_count)
 		{
@@ -112,6 +113,54 @@ namespace mc
 	std::uint32_t blocks_c::get_light_state(structures::family_e family, std::uint8_t level) const
 	{
 		return get_state(family, light_kind) - (light_level_max - std::min<std::uint32_t>(level, light_level_max)) * 2u;
+	}
+	/*
+	//=====================================================================================
+	*/
+	bool blocks_c::is_instant(std::uint16_t kind) const
+	{
+		return kind < kind_instant.size() && kind_instant[kind] != 0u;
+	}
+	/*
+	//=====================================================================================
+	*/
+	std::uint16_t blocks_c::add_kind(const std::string& name, const std::array<std::uint32_t, structures::family_count>& states, std::uint16_t like)
+	{
+		auto kind{ static_cast<std::uint16_t>(kind_names.size()) };
+		auto known{ like < kind_names.size() };
+
+		for (auto family{ 0u }; family < structures::family_count; ++family)
+		{
+			placed[family].push_back(states[family]);
+		}
+
+		kind_names.push_back(name);
+		names.emplace(name, kind);
+		kind_emission.push_back(known ? kind_emission[like] : 0u);
+		kind_opacity.push_back(known ? kind_opacity[like] : static_cast<std::uint8_t>(light_level_max));
+		kind_instant.push_back(known ? kind_instant[like] : 0u);
+
+		return kind;
+	}
+	/*
+	//=====================================================================================
+	*/
+	void blocks_c::load_instant()
+	{
+		std::unordered_set<std::string> instant{};
+		kind_instant.assign(kind_names.size(), 0u);
+
+		for (const auto& [name, id] : read_table(instant_path, false))
+		{
+			instant.insert(name);
+		}
+
+		for (auto kind{ 0u }; kind < kind_names.size(); ++kind)
+		{
+			kind_instant[kind] = instant.contains(kind_names[kind]) ? 1u : 0u;
+		}
+
+		utils::log.write(color_server, "[blocks](instant) %zu blocks break instantly, %zu kinds", instant.size(), static_cast<std::size_t>(std::count(kind_instant.begin(), kind_instant.end(), 1u)));
 	}
 	/*
 	//=====================================================================================

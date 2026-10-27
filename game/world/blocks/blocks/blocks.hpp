@@ -25,11 +25,14 @@ namespace mc
 		std::uint8_t get_opacity(std::uint16_t kind) const;
 		std::uint8_t get_state_emission(std::uint32_t state) const;
 		std::uint32_t get_light_state(structures::family_e family, std::uint8_t level) const;
+		bool is_instant(std::uint16_t kind) const;
+		std::uint16_t add_kind(const std::string& name, const std::array<std::uint32_t, structures::family_count>& states, std::uint16_t like);
 
 	private:
 
 		void load_placed();
 		void load_light();
+		void load_instant();
 
 		static std::vector<std::pair<std::string, std::uint32_t>> read_table(const char* path, bool legacy);
 
@@ -42,6 +45,7 @@ namespace mc
 		std::vector<std::uint8_t> state_emission;
 		std::vector<std::uint8_t> kind_emission;
 		std::vector<std::uint8_t> kind_opacity;
+		std::vector<std::uint8_t> kind_instant;
 		std::uint16_t light_kind;
 	};
 
