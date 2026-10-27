@@ -27,12 +27,14 @@ namespace mc
 
 		else if (id == client.layout.play_in_player_action)
 		{
-			auto status{ functions::read_varint(in) };
+			auto raw{ functions::read_varint(in) };
+			auto shifted{ client.layout.action_direction && raw >= action_change_direction };
+			auto status{ shifted && raw == action_change_direction ? -1 : (shifted ? raw - 1 : raw) };
 			auto position{ functions::decode_position(functions::read_u64(in)) };
 			functions::read_u8(in);
 			sequence = functions::read_varint(in);
 
-			if (in.good())
+			if (in.good() && status >= 0)
 			{
 				dig(client, status, position[0], position[1], position[2]);
 			}
