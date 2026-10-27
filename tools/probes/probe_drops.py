@@ -94,6 +94,6 @@ for client in (m, w2, w8):
     with client.lock: client.log.clear()
 m.send(sb3['chat_command'], mstr('spawn')); time.sleep(0.6)
 m.send(sb3['player_action'], varint(3) + pos(0, 0, 0) + b'\x00' + varint(0)); time.sleep(0.4)
-check('q in spawn keeps the item (no entity, slot resent)', not items_added(m, cb3, 72) and bodies(m, cb3['set_player_inventory']))
+check('q in spawn keeps the item (no entity, hotbar resent)', not items_added(m, cb3, 72) and bodies(m, cb3['container_set_content']))
 for client in (m, w2, w8): client.close()
 print('failures:', fails)
