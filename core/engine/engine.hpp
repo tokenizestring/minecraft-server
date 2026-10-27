@@ -383,6 +383,7 @@ namespace mc
 	constexpr const char* world_names[] = { "spawn", "smp" };
 	constexpr std::double_t world_rescue_heights[] = { -32.0, -80.0 };
 	constexpr auto gen_block_path = "data/java/gen_blocks.txt";
+	constexpr auto light_path = "data/java/light.txt";
 	constexpr auto world_min_y = -64;
 	constexpr auto world_height = 384;
 	constexpr auto column_volume = 16u * 16u * 384u;
@@ -449,6 +450,12 @@ namespace mc
 	constexpr auto drop_return_radius = 48.0;
 	constexpr auto drop_return_speed = 0.3;
 	constexpr std::uint32_t drop_lifetime_ticks = 6000u;
+	constexpr std::uint64_t day_length = 24000u;
+	constexpr std::uint64_t smp_start_time = 1000u;
+	constexpr std::uint32_t time_sync_ticks = 100u;
+	constexpr std::int32_t overworld_clock = 0;
+	constexpr std::int32_t v1_8_play_out_time = 0x03;
+	constexpr std::int32_t held_light_offset = 1;
 	constexpr std::uint8_t v1_8_dig_start = 0u;
 	constexpr std::uint8_t v1_8_dig_finish = 2u;
 	constexpr std::uint8_t v1_8_face_none = 255u;
@@ -465,7 +472,12 @@ namespace mc
 	constexpr std::uint32_t hotbar_size = 9u;
 	constexpr auto stacks_path = "data/java/stacks.txt";
 	constexpr auto drops_path = "data/java/drops.txt";
-	constexpr std::uint32_t inventory_size = 36u;
+	constexpr std::uint32_t inventory_size = 37u;
+	constexpr std::uint32_t storage_size = 36u;
+	constexpr std::uint32_t offhand_slot = 36u;
+	constexpr std::int32_t window_offhand_slot = 45;
+	constexpr std::int32_t swap_hands_status = 6;
+	constexpr std::int32_t player_inventory_offhand = 40;
 	constexpr std::uint8_t default_stack = 64u;
 	constexpr std::int32_t window_main_first = 9;
 	constexpr std::int32_t window_main_last = 35;
@@ -651,6 +663,7 @@ namespace mc
 			std::int32_t play_out_entity_data;
 			std::int32_t play_out_move_entity_pos;
 			std::int32_t item_entity_type;
+			std::int32_t play_out_set_time;
 		};
 		/*
 		//=====================================================================================
@@ -1327,7 +1340,7 @@ namespace mc
 			std::int32_t z;
 			std::uint64_t seed;
 			std::uint32_t epoch;
-			std::shared_ptr<const std::vector<edit_s>> edits;
+			std::array<std::shared_ptr<const std::vector<edit_s>>, 9u> around;
 			std::shared_ptr<const std::vector<std::uint8_t>> packet;
 		};
 		/*
@@ -1386,6 +1399,10 @@ namespace mc
 			std::string market_filter;
 			std::array<std::uint32_t, market_page_size> market_view;
 			std::unordered_set<std::int32_t> seen_drops;
+			std::uint8_t glow_level;
+			std::int32_t glow_x;
+			std::int32_t glow_y;
+			std::int32_t glow_z;
 			bool compressed;
 			std::uint64_t connected_ms;
 			std::uint64_t keep_alive_sent_ms;
@@ -2013,11 +2030,11 @@ namespace mc
 			switch (family)
 			{
 			case structures::family_26_2:
-				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_move_entity_rot = 0x38,.play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3B, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x60, .play_out_transfer = 0x81, .item_path = "data/java/items_26_2.txt", .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x35, .play_in_set_creative_slot = 0x38, .play_out_player_inventory = 0x6C, .play_out_take_item = 0x7C, .play_out_entity_data = 0x63, .play_out_move_entity_pos = 0x35, .item_entity_type = 71 };
+				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_move_entity_rot = 0x38,.play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3B, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x60, .play_out_transfer = 0x81, .item_path = "data/java/items_26_2.txt", .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x35, .play_in_set_creative_slot = 0x38, .play_out_player_inventory = 0x6C, .play_out_take_item = 0x7C, .play_out_entity_data = 0x63, .play_out_move_entity_pos = 0x35, .item_entity_type = 71, .play_out_set_time = 0x71 };
 				break;
 
 			case structures::family_26_3:
-				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_move_entity_rot = 0x39,.play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3C, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x62, .play_out_transfer = 0x84, .item_path = "data/java/items_26_3.txt", .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x36, .play_in_set_creative_slot = 0x39, .play_out_player_inventory = 0x6E, .play_out_take_item = 0x7F, .play_out_entity_data = 0x65, .play_out_move_entity_pos = 0x36, .item_entity_type = 72 };
+				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_move_entity_rot = 0x39,.play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3C, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x62, .play_out_transfer = 0x84, .item_path = "data/java/items_26_3.txt", .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26, .play_out_block_update = 0x08, .play_in_set_carried_item = 0x36, .play_in_set_creative_slot = 0x39, .play_out_player_inventory = 0x6E, .play_out_take_item = 0x7F, .play_out_entity_data = 0x65, .play_out_move_entity_pos = 0x36, .item_entity_type = 72, .play_out_set_time = 0x73 };
 				break;
 			}
 
