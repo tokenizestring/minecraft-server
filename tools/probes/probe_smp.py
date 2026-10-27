@@ -95,10 +95,16 @@ mask = struct.unpack('>H', filled[0][9:11])[0]; n, p = rvarint(filled[0], 11)
 check('1.8 chunk sizes add up', n == bin(mask).count('1') * (8192 + 4096) + 256 and p + n == len(filled[0]), (n, len(filled[0])))
 c.close()
 
-r = Java('RollProbe', 777); r.join(); time.sleep(0.8)
-r.send(sb['chat_command'], mstr('smp')); time.sleep(1.0)
+u = Java('RollProbe', 777); u.join(); time.sleep(0.8)
+u.send(sb['chat_command'], mstr('roll')); time.sleep(0.5)
+with u.lock: log = list(u.log)
+check('/roll is refused for non operators', any(b'not an operator' in b for p, b in log if p == cb['system_chat']), None)
+u.close()
+
+r = Java('Mustinkycc', 777); r.join(); time.sleep(0.8)
+r.send(sb['chat_command'], mstr('smp')); time.sleep(2.0)
 with r.lock: r.log.clear()
-r.send(sb['chat_command'], mstr('roll')); time.sleep(1.5)
+r.send(sb['chat_command'], mstr('roll')); time.sleep(3.0)
 with r.lock: log = list(r.log)
 notes = [b for p, b in log if p == cb['system_chat']]
 rolled = [b for p, b in log if p == cb['level_chunk_with_light']]

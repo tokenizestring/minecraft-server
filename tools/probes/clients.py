@@ -1,4 +1,4 @@
-import socket, struct, time, json, os, sys, threading, base64
+import zlib, socket, struct, time, json, os, sys, threading, base64
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.join(HERE, '..', d) for d in ('probes', 'decode')]
@@ -37,7 +37,7 @@ class Java:
     def __init__(self, name, protocol):
         self.name, self.protocol = name, protocol
         self.sock = socket.create_connection((HOST, 25565), timeout=10)
-        self.rx = b''; self.log = []; self.lock = threading.Lock(); self.running = True
+        self.rx = b''; self.zip = False; self.login = True; self.log = []; self.lock = threading.Lock(); self.running = True
         if protocol == 47:
             self.cb = {'add': 0x0C, 'move': 0x18, 'remove': 0x13, 'list': 0x38}
             self.sb = {'move': 0x06}
@@ -48,6 +48,7 @@ class Java:
 
     def send(self, pid, body=b''):
         p = varint(pid) + body
+        if self.zip: p = b'\x00' + p
         self.sock.sendall(varint(len(p)) + p)
 
     def recv(self):
@@ -56,7 +57,13 @@ class Java:
                 n, p = rvarint(self.rx, 0)
                 if len(self.rx) >= p + n:
                     frame = self.rx[p:p + n]; self.rx = self.rx[p + n:]
+                    if self.zip:
+                        size, q = rvarint(frame, 0)
+                        frame = zlib.decompress(frame[q:]) if size else frame[q:]
                     pid, q = rvarint(frame, 0)
+                    if self.login and pid == 3:
+                        self.zip = True; continue
+                    if self.login and pid == 2: self.login = False
                     return pid, frame[q:]
             except IndexError:
                 pass

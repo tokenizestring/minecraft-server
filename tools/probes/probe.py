@@ -1,4 +1,4 @@
-import socket, struct, time, json, sys, os
+import zlib, socket, struct, time, json, sys, os
 
 HOST, PORT = '127.0.0.1', 25565
 PROTOCOLS = [4, 5, 47, 107, 108, 109, 110, 210, 315, 316, 335, 338, 340, 393, 401, 404, 477, 480, 485, 490, 498, 573, 575, 578, 735, 736, 751, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777]
@@ -31,10 +31,11 @@ def mstr(t):
 class Conn:
     def __init__(self):
         self.s = socket.create_connection((HOST, PORT), timeout=5)
-        self.rx = b''
+        self.rx = b''; self.zip = False; self.login = True
 
     def send(self, pid, body=b''):
         p = varint(pid) + body
+        if self.zip: p = b'\x00' + p
         self.s.sendall(varint(len(p)) + p)
 
     def recv(self, timeout=5):
@@ -44,7 +45,13 @@ class Conn:
                 n, p = rvarint(self.rx, 0)
                 if len(self.rx) >= p + n:
                     frame = self.rx[p:p + n]; self.rx = self.rx[p + n:]
+                    if self.zip:
+                        size, q = rvarint(frame, 0)
+                        frame = zlib.decompress(frame[q:]) if size else frame[q:]
                     pid, q = rvarint(frame, 0)
+                    if self.login and pid == 3:
+                        self.zip = True; continue
+                    if self.login and pid == 2: self.login = False
                     return pid, frame[q:]
             except IndexError:
                 pass
@@ -235,7 +242,7 @@ def play_modern(proto, name):
         if not r: break
         seen[r[0]] = seen.get(r[0], 0) + 1
         if r[0] == ids['login']: assert parse_login_modern(r[1], ids) == 'minecraft:overworld'
-        if r[0] == ids['event']: break
+        if seen.get(ids['chunk']) == 169: break
     assert seen.get(ids['login']) == 1 and seen.get(ids['center']) == 1 and seen.get(ids['position']) == 1 and seen.get(ids['chunk']) == 169, seen
     c.send(0x00, varint(1))
     c.send(0x1E, struct.pack('>dddB', 8.5, -40.0, 8.5, 0))
@@ -252,14 +259,14 @@ def play_1_8(name):
     order = []
     while len(order) < 4:
         r = c.recv(); assert r, order
-        if r[0] in (0x38, 0x0C) or (r[0] == 0x21 and 0x21 in order): continue
+        if r[0] not in (0x01, 0x05, 0x08, 0x21) or (r[0] == 0x21 and 0x21 in order): continue
         order.append(r[0])
         if r[0] == 0x21:
             x, z, gu, mask = struct.unpack('>ii?H', r[1][:11])
             n, p = rvarint(r[1], 11)
             assert n == 12544 and len(r[1]) == p + n and mask == 1 << (59 >> 4), (n, len(r[1]), mask)
             assert r[1][p + 2940 * 2] == 32
-    assert order == [0x01, 0x05, 0x21, 0x08], order
+    assert order[:2] == [0x01, 0x05] and set(order[2:]) == {0x08, 0x21}, order
     c.send(0x04, struct.pack('>ddd?', 8.5, -40.0, 8.5, False))
     r = c.recv()
     while r and r[0] != 0x08: r = c.recv()
