@@ -105,7 +105,7 @@ namespace mc
 			auto drop{ items.get_drop(lookup.get(structures::world_smp, x, y, z)) };
 			change(structures::world_smp, x, y, z, structures::block_air);
 
-			if (drop)
+			if (drop && drops.spawn(structures::world_smp, { drop, 1u }, x + 0.5, y + 0.25, z + 0.5) == false)
 			{
 				inventory.add(client.player, drop, 1u);
 				java_inventory.send_all(client);
