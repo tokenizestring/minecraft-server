@@ -97,7 +97,7 @@ namespace mc
 
 		auto carried{ read_hashed(client.family, in) };
 
-		if (in.good() && window == 0 && is_hub(client))
+		if (window == 0 && is_hub(client))
 		{
 			send_all(client);
 		}
@@ -153,7 +153,7 @@ namespace mc
 			network.send(client, packet);
 		}
 
-		if (in.good() && window == 0 && is_hub(client))
+		if (window == 0 && is_hub(client))
 		{
 			send_all(client);
 		}
@@ -196,7 +196,7 @@ namespace mc
 			client.player.inventory[static_cast<std::size_t>(slot)] = { item, static_cast<std::uint8_t>(item && count > 0 ? std::min(count, 255) : 0) };
 		}
 
-		else if (in.good() && is_hub(client))
+		else if (is_hub(client))
 		{
 			send_all(client);
 		}
@@ -217,7 +217,7 @@ namespace mc
 			client.player.inventory[static_cast<std::size_t>(slot)] = { item, static_cast<std::uint8_t>(item ? count : 0u) };
 		}
 
-		else if (in.good() && is_hub(client))
+		else if (is_hub(client))
 		{
 			send_all(client);
 		}
@@ -239,13 +239,14 @@ namespace mc
 	*/
 	void java_inventory_c::swap_hands(structures::client_s& client)
 	{
-		if (functions::is_modern(client.family) && is_hub(client) == false)
+		if (is_hub(client))
 		{
-			std::swap(client.player.inventory[client.player.held_slot], client.player.inventory[offhand_slot]);
+			send_all(client);
 		}
 
-		if (functions::is_modern(client.family))
+		else if (functions::is_modern(client.family))
 		{
+			std::swap(client.player.inventory[client.player.held_slot], client.player.inventory[offhand_slot]);
 			send_slot(client, client.player.held_slot);
 			send_slot(client, offhand_slot);
 		}
@@ -258,13 +259,22 @@ namespace mc
 		auto& stack{ client.player.inventory[client.player.held_slot] };
 		structures::item_stack_s thrown{ stack.item, static_cast<std::uint8_t>(all || stack.count == 0u ? stack.count : 1u) };
 
-		if (drops.toss(client.player, thrown))
+		if (is_hub(client))
+		{
+			send_all(client);
+		}
+
+		else if (drops.toss(client.player, thrown))
 		{
 			stack.count = static_cast<std::uint8_t>(stack.count - thrown.count);
 			stack.item = stack.count ? stack.item : 0u;
+			send_slot(client, client.player.held_slot);
 		}
 
-		send_slot(client, client.player.held_slot);
+		else
+		{
+			send_slot(client, client.player.held_slot);
+		}
 	}
 	/*
 	//=====================================================================================
