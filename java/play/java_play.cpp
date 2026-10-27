@@ -166,6 +166,11 @@ namespace mc
 		{
 			java_chat.handle_command(client, in);
 		}
+
+		else if (id == client.layout.play_in_player_action || id == client.layout.play_in_use_item_on || id == client.layout.play_in_use_item)
+		{
+			java_block.handle_modern(client, id, in);
+		}
 	}
 	/*
 	//=====================================================================================
@@ -207,6 +212,16 @@ namespace mc
 		else if (id == v1_8_play_in_chat)
 		{
 			java_chat.handle(client, in);
+		}
+
+		else if (id == v1_8_play_in_dig)
+		{
+			java_block.handle_dig_1_8(client, in);
+		}
+
+		else if (id == v1_8_play_in_place)
+		{
+			java_block.handle_place_1_8(client, in);
 		}
 	}
 	/*

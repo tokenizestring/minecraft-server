@@ -56,6 +56,7 @@
 #include "java/player/java_player.hpp"
 #include "java/chat/java_chat.hpp"
 #include "java/command/java_command.hpp"
+#include "java/block/java_block.hpp"
 
 #include "bedrock/raknet/raknet.hpp"
 #include "bedrock/packet/bedrock_packet.hpp"

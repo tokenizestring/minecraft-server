@@ -43,6 +43,7 @@ cl.exe %CFLAGS% ^
     java\player\java_player.cpp ^
     java\chat\java_chat.cpp ^
     java\command\java_command.cpp ^
+    java\block\java_block.cpp ^
     bedrock\raknet\raknet.cpp ^
     bedrock\packet\bedrock_packet.cpp ^
     bedrock\login\bedrock_login.cpp ^

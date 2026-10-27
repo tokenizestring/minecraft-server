@@ -347,6 +347,14 @@ namespace mc
 	constexpr std::uint8_t modern_game_event_change_mode = 3u;
 	constexpr std::int32_t v1_8_play_out_game_state = 0x2B;
 	constexpr std::uint32_t bedrock_set_player_game_type = 62u;
+	constexpr std::uint32_t bedrock_update_adventure_settings = 188u;
+	constexpr std::int32_t v1_8_play_in_dig = 0x07;
+	constexpr std::int32_t v1_8_play_in_place = 0x08;
+	constexpr std::int32_t v1_8_play_out_block_change = 0x23;
+	constexpr std::uint8_t v1_8_dig_start = 0u;
+	constexpr std::uint8_t v1_8_dig_finish = 2u;
+	constexpr std::uint8_t v1_8_face_none = 255u;
+	constexpr std::int32_t face_offsets[6][3] = { { 0, -1, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, { 0, 0, 1 }, { -1, 0, 0 }, { 1, 0, 0 } };
 
 	constexpr auto section_volume = 4096u;
 	constexpr auto light_array_size = 2048u;
@@ -436,6 +444,10 @@ namespace mc
 			std::int32_t play_out_set_score;
 			std::int32_t play_out_reset_score;
 			std::int32_t play_in_chat_command;
+			std::int32_t play_in_player_action;
+			std::int32_t play_in_use_item_on;
+			std::int32_t play_in_use_item;
+			std::int32_t play_out_block_changed_ack;
 			std::int32_t play_out_commands;
 			std::int32_t player_entity_type;
 
@@ -1270,11 +1282,11 @@ namespace mc
 			switch (family)
 			{
 			case structures::family_26_2:
-				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25 };
+				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25 };
 				break;
 
 			case structures::family_26_3:
-				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26 };
+				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26 };
 				break;
 			}
 
@@ -1533,6 +1545,28 @@ namespace mc
 		static std::uint64_t encode_position_1_8(std::int32_t x, std::int32_t y, std::int32_t z)
 		{
 			return ((static_cast<std::uint64_t>(x) & 0x3FFFFFFui64) << 38u) | ((static_cast<std::uint64_t>(y) & 0xFFFui64) << 26u) | (static_cast<std::uint64_t>(z) & 0x3FFFFFFui64);
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::array<std::int32_t, 3u> decode_position_1_8(std::uint64_t value)
+		{
+			return { static_cast<std::int32_t>(static_cast<std::int64_t>(value) >> 38), static_cast<std::int32_t>(static_cast<std::int64_t>(value << 26u) >> 52), static_cast<std::int32_t>(static_cast<std::int64_t>(value << 38u) >> 38) };
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::int32_t read_trailing_varint(const structures::reader_s& in)
+		{
+			auto start{ in.size };
+
+			while (start > 0u && (start == in.size || (in.data[start - 1u] & 0x80u)) && in.size - start < 5u)
+			{
+				start -= 1u;
+			}
+
+			structures::reader_s tail{ in.data + start, in.size - start, 0u, true };
+			return read_varint(tail);
 		}
 	}
 
