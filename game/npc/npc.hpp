@@ -15,6 +15,7 @@ namespace mc
 
 		void load();
 		void show(structures::player_s& viewer);
+		void look(structures::player_s& viewer);
 		void interact(structures::player_s& player, std::int32_t entity_id);
 		void click(structures::player_s& player, std::uint32_t slot);
 		void choose(structures::player_s& player, std::uint32_t button);

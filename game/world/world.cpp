@@ -69,6 +69,7 @@ namespace mc
 		for (auto subject : dirty)
 		{
 			subject->moved = false;
+			npc.look(*subject);
 
 			for (auto viewer : players | std::views::filter([subject](auto other) { return other != subject; }))
 			{

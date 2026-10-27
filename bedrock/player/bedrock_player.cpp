@@ -134,14 +134,21 @@ namespace mc
 	*/
 	void bedrock_player_c::move(structures::session_s& viewer, const structures::player_s& subject)
 	{
+		look(viewer, subject, subject.yaw, subject.pitch);
+	}
+	/*
+	//=====================================================================================
+	*/
+	void bedrock_player_c::look(structures::session_s& viewer, const structures::player_s& subject, std::float_t yaw, std::float_t pitch)
+	{
 		body.clear();
 		functions::write_varint64(body, static_cast<std::uint64_t>(subject.entity_id));
 		functions::write_f32_le(body, static_cast<std::float_t>(subject.x));
 		functions::write_f32_le(body, static_cast<std::float_t>(subject.y) + bedrock_eye_height);
 		functions::write_f32_le(body, static_cast<std::float_t>(subject.z));
-		functions::write_f32_le(body, subject.pitch);
-		functions::write_f32_le(body, subject.yaw);
-		functions::write_f32_le(body, subject.yaw);
+		functions::write_f32_le(body, pitch);
+		functions::write_f32_le(body, yaw);
+		functions::write_f32_le(body, yaw);
 		functions::write_u8(body, bedrock_move_normal);
 		functions::write_bool(body, subject.on_ground);
 		functions::write_varint64(body, 0ui64);
