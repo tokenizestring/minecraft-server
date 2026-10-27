@@ -44,9 +44,11 @@ std::int32_t main()
 		mc::bedrock_debug.load();
 		mc::profile.build();
 		mc::market.load();
+		mc::drops.load();
 		mc::network.run();
 		mc::profile.save_all();
 		mc::edits.shutdown();
+		mc::drops.save();
 		mc::java_chunk.shutdown();
 		code = 0;
 	}

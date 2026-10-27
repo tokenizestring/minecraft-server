@@ -39,6 +39,7 @@
 #include <ranges>
 #include <span>
 #include <charconv>
+#include <numbers>
 
 #include "utils/log/log.hpp"
 
@@ -62,6 +63,7 @@
 #include "game/inventory/inventory.hpp"
 #include "game/profile/profile.hpp"
 #include "game/market/market.hpp"
+#include "game/drops/drops.hpp"
 #include "game/chat/chat.hpp"
 #include "game/npc/npc.hpp"
 #include "game/command/command.hpp"
@@ -78,6 +80,7 @@
 #include "java/menu/java_menu.hpp"
 #include "java/inventory/java_inventory.hpp"
 #include "java/market/java_market.hpp"
+#include "java/drops/java_drops.hpp"
 
 #include "bedrock/raknet/raknet.hpp"
 #include "bedrock/packet/bedrock_packet.hpp"
