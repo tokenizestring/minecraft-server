@@ -18,14 +18,9 @@ namespace mc
 	*/
 	void world_c::add(structures::player_s& player)
 	{
-		for (auto other : players)
-		{
-			spawn(*other, player, true);
-			spawn(player, *other, true);
-		}
-
 		player.spawned = true;
 		player.moved = false;
+		join_world(player);
 		players.push_back(&player);
 		spawn(player, player, false);
 
@@ -42,12 +37,28 @@ namespace mc
 			std::erase(players, &player);
 			std::erase(dirty, &player);
 
-			for (auto other : players)
+			for (auto other : players | std::views::filter([&player](auto candidate) { return candidate->world == player.world; }))
 			{
 				despawn(*other, player);
 			}
 
 			utils::log.write(color_play, "[world](remove) '%s' entity %d, %zu players", player.name.c_str(), player.entity_id, players.size());
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void world_c::change(structures::player_s& player, structures::world_e target)
+	{
+		if (player.spawned && player.world != target)
+		{
+			std::erase(players, &player);
+			leave_world(player);
+			player.world = target;
+			join_world(player);
+			players.push_back(&player);
+
+			utils::log.write(color_play, "[world](change) '%s' to '%s'", player.name.c_str(), world_names[target]);
 		}
 	}
 	/*
@@ -69,15 +80,72 @@ namespace mc
 		for (auto subject : dirty)
 		{
 			subject->moved = false;
-			npc.look(*subject);
 
-			for (auto viewer : players | std::views::filter([subject](auto other) { return other != subject; }))
+			if (subject->world == structures::world_spawn)
+			{
+				npc.look(*subject);
+			}
+
+			for (auto viewer : players | std::views::filter([subject](auto other) { return other != subject && other->world == subject->world; }))
 			{
 				move(*viewer, *subject);
 			}
 		}
 
 		dirty.clear();
+	}
+	/*
+	//=====================================================================================
+	*/
+	void world_c::set_spawn(structures::world_e target, const structures::spawn_s& spawn)
+	{
+		spawns[target] = spawn;
+	}
+	/*
+	//=====================================================================================
+	*/
+	const structures::spawn_s& world_c::get_spawn(structures::world_e target) const
+	{
+		return spawns[target];
+	}
+	/*
+	//=====================================================================================
+	*/
+	const std::vector<structures::player_s*>& world_c::get_players() const
+	{
+		return players;
+	}
+	/*
+	//=====================================================================================
+	*/
+	void world_c::join_world(structures::player_s& player)
+	{
+		for (auto other : players | std::views::filter([&player](auto candidate) { return candidate->world == player.world; }))
+		{
+			spawn(*other, player, true);
+			spawn(player, *other, true);
+		}
+
+		if (player.world == structures::world_spawn)
+		{
+			npc.show(player);
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
+	void world_c::leave_world(structures::player_s& player)
+	{
+		for (auto other : players | std::views::filter([&player](auto candidate) { return candidate->world == player.world; }))
+		{
+			despawn(*other, player);
+			despawn(player, *other);
+		}
+
+		if (player.world == structures::world_spawn)
+		{
+			npc.hide(player);
+		}
 	}
 	/*
 	//=====================================================================================
@@ -123,13 +191,6 @@ namespace mc
 		{
 			java_player.move(*static_cast<structures::client_s*>(viewer.link), subject);
 		}
-	}
-	/*
-	//=====================================================================================
-	*/
-	const std::vector<structures::player_s*>& world_c::get_players() const
-	{
-		return players;
 	}
 }
 

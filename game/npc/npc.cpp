@@ -81,6 +81,24 @@ namespace mc
 	/*
 	//=====================================================================================
 	*/
+	void npc_c::hide(structures::player_s& viewer)
+	{
+		for (const auto& entry : npcs)
+		{
+			if (viewer.edition == structures::edition_bedrock)
+			{
+				bedrock_player.despawn(*static_cast<structures::session_s*>(viewer.link), entry.player);
+			}
+
+			else
+			{
+				java_player.despawn(*static_cast<structures::client_s*>(viewer.link), entry.player);
+			}
+		}
+	}
+	/*
+	//=====================================================================================
+	*/
 	void npc_c::look(structures::player_s& viewer)
 	{
 		for (auto index{ 0u }; index < npcs.size(); ++index)
@@ -252,6 +270,16 @@ namespace mc
 		{
 			chat.notify(player, "server switching is coming soon on this version");
 		}
+
+		else if (verb == "world" && rest == smp_command)
+		{
+			command.travel(player, structures::world_smp);
+		}
+
+		else if (verb == "world" && rest == spawn_command)
+		{
+			command.travel(player, structures::world_spawn);
+		}
 	}
 	/*
 	//=====================================================================================
@@ -263,10 +291,10 @@ namespace mc
 			std::fprintf(file, "# npcs at spawn, hit or click one to open its menu\n");
 			std::fprintf(file, "# npc=<name>|<x> <y> <z> <yaw>|<menu title>|<rows 1-6>\n");
 			std::fprintf(file, "# item=<slot>|<item id>|<name>|<lore line;lore line>|<action>\n");
-			std::fprintf(file, "# actions: message <text> | transfer <host> <port> | close\n");
+			std::fprintf(file, "# actions: message <text> | transfer <host> <port> | world smp | world spawn | close\n");
 			std::fprintf(file, "# colour codes like \xC2\xA7" "a work in names, titles and lore\n\n");
 			std::fprintf(file, "npc=SMP|6.5 58 -8.5 -45|\xC2\xA7" "2Survival SMP|3\n");
-			std::fprintf(file, "item=11|minecraft:grass_block|\xC2\xA7" "aJoin the SMP|\xC2\xA7" "7Survive and build with friends;\xC2\xA7" "eClick to play|message the smp world is opening soon\n");
+			std::fprintf(file, "item=11|minecraft:grass_block|\xC2\xA7" "aJoin the SMP|\xC2\xA7" "7Survive and build with friends;\xC2\xA7" "eClick to play|world smp\n");
 			std::fprintf(file, "item=13|minecraft:compass|\xC2\xA7" "bRandom Teleport|\xC2\xA7" "7Start somewhere fresh;\xC2\xA7" "eClick to go|message random teleport opens with the smp\n");
 			std::fprintf(file, "item=15|minecraft:red_bed|\xC2\xA7" "dHome|\xC2\xA7" "7Back to your bed;\xC2\xA7" "eClick to go home|message homes open with the smp\n\n");
 			std::fprintf(file, "npc=Info|18.5 58 -8.5 45|\xC2\xA7" "6Server Info|3\n");
