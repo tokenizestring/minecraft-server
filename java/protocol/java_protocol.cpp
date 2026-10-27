@@ -227,6 +227,13 @@ namespace mc
 			else
 			{
 				functions::make_offline_uuid(name, client.uuid_high, client.uuid_low);
+
+				packet.clear();
+				functions::write_varint(packet, login_out_compression);
+				functions::write_varint(packet, static_cast<std::int32_t>(java_compression_threshold));
+				network.send(client, packet);
+				client.compressed = true;
+
 				send_login_success(client);
 
 				utils::log.write(color_login, "[login](%s) '%s' from '%s' uuid %s", functions::get_version_name(client.protocol), client.name.c_str(), client.address.c_str(), functions::format_uuid(client.uuid_high, client.uuid_low, true).c_str());

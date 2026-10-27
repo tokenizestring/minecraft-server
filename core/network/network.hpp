@@ -54,6 +54,9 @@ namespace mc
 		std::vector<structures::client_s*> dirty;
 		std::vector<WSABUF> buffers;
 		std::vector<std::uint8_t> scratch;
+		std::vector<std::uint8_t> squeezed;
+		std::vector<std::uint8_t> inflated;
+		deflate_c deflater;
 	};
 
 	extern network_c network;

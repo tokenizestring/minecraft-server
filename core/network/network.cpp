@@ -72,6 +72,7 @@ namespace mc
 				tick(now);
 				raknet.tick(now);
 				world.tick();
+				java_chunk.tick();
 				chat.tick(now);
 				next_tick = now + tick_ms;
 			}
@@ -112,7 +113,25 @@ namespace mc
 			auto& tail{ get_tail(client) };
 			auto before{ tail.size() };
 
-			functions::write_frame(tail, body);
+			if (client.compressed && body.size() >= java_compression_threshold)
+			{
+				squeezed.clear();
+				deflater.compress(body.data(), body.size(), squeezed, true);
+				functions::write_varint(tail, static_cast<std::int32_t>(functions::get_varint_size(static_cast<std::int32_t>(body.size())) + squeezed.size()));
+				functions::write_varint(tail, static_cast<std::int32_t>(body.size()));
+				functions::write_bytes(tail, squeezed.data(), squeezed.size());
+			}
+
+			else if (client.compressed)
+			{
+				functions::write_packet_frame(tail, body);
+			}
+
+			else
+			{
+				functions::write_frame(tail, body);
+			}
+
 			client.tx_bytes += tail.size() - before;
 			queue(client);
 		}
@@ -476,7 +495,24 @@ namespace mc
 				{
 					structures::reader_s frame{ client.rx.data() + client.rx_cursor + header.cursor, static_cast<std::size_t>(length), 0u, true };
 					client.rx_cursor += header.cursor + static_cast<std::size_t>(length);
-					java_protocol.handle(client, frame);
+					auto unpacked{ client.compressed ? functions::read_varint(frame) : 0 };
+
+					if (unpacked > 0 && static_cast<std::size_t>(unpacked) <= max_frame_size && frame.remaining() > 2u && zlib.inflate_raw(frame.data + frame.cursor + 2u, frame.remaining() - 2u, inflated, static_cast<std::size_t>(unpacked)) && inflated.size() == static_cast<std::size_t>(unpacked))
+					{
+						structures::reader_s expanded{ inflated.data(), inflated.size(), 0u, true };
+						java_protocol.handle(client, expanded);
+					}
+
+					else if (unpacked == 0 && frame.good())
+					{
+						structures::reader_s body{ frame.data + frame.cursor, frame.remaining(), 0u, true };
+						java_protocol.handle(client, body);
+					}
+
+					else
+					{
+						close(client, "bad compressed frame");
+					}
 				}
 
 				else if (header.good() && length > 0 && static_cast<std::size_t>(length) <= max_frame_size)

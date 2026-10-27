@@ -266,6 +266,17 @@ namespace mc
 	constexpr std::int32_t login_in_acknowledged = 0x03;
 	constexpr std::int32_t login_out_disconnect = 0x00;
 	constexpr std::int32_t login_out_success = 0x02;
+	constexpr std::int32_t login_out_compression = 0x03;
+	constexpr std::size_t java_compression_threshold = 256u;
+	constexpr auto deflate_hash_bits = 15u;
+	constexpr std::size_t deflate_hash_size = 1u << deflate_hash_bits;
+	constexpr std::size_t deflate_window = 32768u;
+	constexpr auto deflate_max_chain = 16u;
+	constexpr auto deflate_min_match = 3u;
+	constexpr auto deflate_max_match = 258u;
+	constexpr auto deflate_end_of_block = 256u;
+	constexpr std::size_t deflate_adler_block = 5552u;
+	constexpr auto deflate_adler_modulus = 65521u;
 
 	constexpr std::int32_t config_out_custom_payload = 0x01;
 	constexpr std::int32_t config_out_finish = 0x03;
@@ -365,37 +376,12 @@ namespace mc
 	constexpr auto degrees_per_radian = 57.29577951308232;
 	constexpr std::int32_t v1_8_play_out_entity_look = 0x16;
 
-	constexpr const char* block_names[] = { "minecraft:air", "minecraft:stone", "minecraft:deepslate", "minecraft:dirt", "minecraft:grass_block", "minecraft:sand", "minecraft:sandstone", "minecraft:gravel", "minecraft:water", "minecraft:lava", "minecraft:bedrock", "minecraft:snow_block", "minecraft:snow", "minecraft:ice", "minecraft:oak_log", "minecraft:oak_leaves", "minecraft:spruce_log", "minecraft:spruce_leaves", "minecraft:birch_log", "minecraft:birch_leaves", "minecraft:coal_ore", "minecraft:iron_ore", "minecraft:copper_ore", "minecraft:gold_ore", "minecraft:diamond_ore", "minecraft:deepslate_coal_ore", "minecraft:deepslate_iron_ore", "minecraft:deepslate_copper_ore", "minecraft:deepslate_gold_ore", "minecraft:deepslate_diamond_ore", "minecraft:short_grass", "minecraft:dandelion", "minecraft:poppy", "minecraft:cactus", "minecraft:dead_bush", "minecraft:clay" };
-	constexpr std::uint8_t block_light_filters[] = { 0u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 1u, 15u, 15u, 15u, 0u, 1u, 15u, 1u, 15u, 1u, 15u, 1u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 15u, 0u, 0u, 0u, 0u, 0u, 15u };
-	constexpr bool block_fluids[] = { false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false };
 	constexpr const char* world_names[] = { "spawn", "smp" };
 	constexpr std::double_t world_rescue_heights[] = { -32.0, -80.0 };
-	constexpr auto java_block_path_26_2 = "data/java/blocks_26_2.txt";
-	constexpr auto java_block_path_26_3 = "data/java/blocks_26_3.txt";
-	constexpr auto java_block_path_1_8 = "data/java/blocks_1_8.txt";
+	constexpr auto gen_block_path = "data/java/gen_blocks.txt";
 	constexpr auto world_min_y = -64;
 	constexpr auto world_height = 384;
 	constexpr auto column_volume = 16u * 16u * 384u;
-	constexpr auto smp_sea_level = 63;
-	constexpr auto smp_spawn_search = 256;
-	constexpr auto smp_cave_floor = -58;
-	constexpr auto smp_lava_level = -54;
-	constexpr std::uint32_t biome_ocean = 0u;
-	constexpr std::uint32_t biome_beach = 1u;
-	constexpr std::uint32_t biome_plains = 2u;
-	constexpr std::uint32_t biome_forest = 3u;
-	constexpr std::uint32_t biome_desert = 4u;
-	constexpr std::uint32_t biome_snowy = 5u;
-	constexpr std::uint32_t biome_mountain = 6u;
-	constexpr std::uint32_t biome_tree_counts[] = { 0u, 0u, 1u, 8u, 0u, 3u, 1u };
-	constexpr std::double_t noise_gradients_2d[8][2] = { { 1.0, 0.0 }, { -1.0, 0.0 }, { 0.0, 1.0 }, { 0.0, -1.0 }, { 0.7071, 0.7071 }, { -0.7071, 0.7071 }, { 0.7071, -0.7071 }, { -0.7071, -0.7071 } };
-	constexpr std::double_t noise_gradients_3d[16][3] = { { 1, 1, 0 }, { -1, 1, 0 }, { 1, -1, 0 }, { -1, -1, 0 }, { 1, 0, 1 }, { -1, 0, 1 }, { 1, 0, -1 }, { -1, 0, -1 }, { 0, 1, 1 }, { 0, -1, 1 }, { 0, 1, -1 }, { 0, -1, -1 }, { 1, 1, 0 }, { -1, 1, 0 }, { 0, -1, 1 }, { 0, -1, -1 } };
-	constexpr std::uint32_t ore_blocks[] = { 20u, 21u, 22u, 23u, 24u };
-	constexpr std::uint32_t ore_veins[] = { 18u, 10u, 8u, 3u, 2u };
-	constexpr std::uint32_t ore_sizes[] = { 9u, 7u, 7u, 6u, 5u };
-	constexpr std::int32_t ore_bottoms[] = { 0, -24, -8, -60, -60 };
-	constexpr std::int32_t ore_tops[] = { 128, 72, 96, 32, 12 };
-	constexpr auto deepslate_ore_offset = 5u;
 	constexpr auto v1_8_section_offset = 4u;
 	constexpr auto v1_8_section_count = 16u;
 	constexpr auto max_menu_rows = 6u;
@@ -422,6 +408,28 @@ namespace mc
 	constexpr std::uint8_t v1_8_dig_finish = 2u;
 	constexpr std::uint8_t v1_8_face_none = 255u;
 	constexpr std::int32_t face_offsets[6][3] = { { 0, -1, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, { 0, 0, 1 }, { -1, 0, 0 }, { 1, 0, 0 } };
+
+	constexpr auto gen_sea_level = 62;
+	constexpr auto gen_deepslate_top = 8;
+	constexpr auto gen_lava_level = -50;
+	constexpr auto gen_snow_line = 126;
+	constexpr auto gen_dressing_floor = -62;
+	constexpr auto gen_dressing_ceiling = 62;
+	constexpr auto gen_cave_step = 4;
+	constexpr auto gen_cave_span = 16 / gen_cave_step + 1;
+	constexpr auto gen_cave_levels = world_height / gen_cave_step + 1;
+	constexpr auto gen_cave_volume = static_cast<std::size_t>(gen_cave_span * gen_cave_span * gen_cave_levels);
+	constexpr auto gen_spawn_search = 2048;
+	constexpr auto gen_spawn_step = 8;
+	constexpr auto gen_default_seed = 0x5EEDCAFEui64;
+	constexpr auto gen_golden = 0x9E3779B97F4A7C15ui64;
+	constexpr auto gen_weyl = 0x632BE59BD9B4E019ui64;
+	constexpr auto gen_tree_attempts = 8;
+	constexpr auto gen_plant_attempts = 190;
+	constexpr auto gen_feature_reach = 2;
+	constexpr std::int32_t gen_side_x[] = { 1, -1, 0, 0 };
+	constexpr std::int32_t gen_side_z[] = { 0, 0, 1, -1 };
+	constexpr std::uint8_t gen_stair_turns[] = { 3u, 2u, 0u, 1u };
 
 	constexpr auto section_volume = 4096u;
 	constexpr auto light_array_size = 2048u;
@@ -646,39 +654,318 @@ namespace mc
 			block_stone,
 			block_deepslate,
 			block_dirt,
-			block_grass,
-			block_sand,
-			block_sandstone,
+			block_coarse_dirt,
+			block_rooted_dirt,
+			block_grass_block,
+			block_podzol,
+			block_mycelium,
 			block_gravel,
+			block_sand,
+			block_red_sand,
+			block_sandstone,
 			block_water,
-			block_lava,
-			block_bedrock,
+			block_ice,
+			block_packed_ice,
 			block_snow_block,
 			block_snow,
-			block_ice,
+			block_powder_snow,
+			block_bedrock,
+			block_terracotta,
+			block_red_terracotta,
+			block_orange_terracotta,
+			block_white_terracotta,
+			block_yellow_terracotta,
+			block_brown_terracotta,
+			block_granite,
+			block_diorite,
+			block_andesite,
+			block_tuff,
+			block_calcite,
+			block_moss_block,
+			block_moss_carpet,
+			block_clay,
+			block_mud,
 			block_oak_log,
 			block_oak_leaves,
-			block_spruce_log,
-			block_spruce_leaves,
 			block_birch_log,
 			block_birch_leaves,
+			block_spruce_log,
+			block_spruce_leaves,
+			block_jungle_log,
+			block_jungle_leaves,
+			block_acacia_log,
+			block_acacia_leaves,
+			block_dark_oak_log,
+			block_dark_oak_leaves,
+			block_cherry_log,
+			block_cherry_leaves,
+			block_mangrove_log,
+			block_mangrove_leaves,
+			block_azalea_leaves,
+			block_flowering_azalea_leaves,
+			block_short_grass,
+			block_tall_grass,
+			block_fern,
+			block_large_fern,
+			block_dead_bush,
+			block_poppy,
+			block_dandelion,
+			block_cornflower,
+			block_oxeye_daisy,
+			block_allium,
+			block_blue_orchid,
+			block_lily_pad,
+			block_cactus,
+			block_sugar_cane,
+			block_brown_mushroom,
+			block_red_mushroom,
+			block_glow_lichen,
+			block_vine,
 			block_coal_ore,
 			block_iron_ore,
 			block_copper_ore,
 			block_gold_ore,
+			block_redstone_ore,
+			block_lapis_ore,
 			block_diamond_ore,
+			block_emerald_ore,
 			block_deepslate_coal_ore,
 			block_deepslate_iron_ore,
 			block_deepslate_copper_ore,
 			block_deepslate_gold_ore,
+			block_deepslate_redstone_ore,
+			block_deepslate_lapis_ore,
 			block_deepslate_diamond_ore,
-			block_short_grass,
-			block_dandelion,
-			block_poppy,
-			block_cactus,
-			block_dead_bush,
-			block_clay,
+			block_deepslate_emerald_ore,
+			block_amethyst_block,
+			block_budding_amethyst,
+			block_glowstone,
+			block_sculk,
+			block_sculk_catalyst,
+			block_dripstone_block,
+			block_obsidian,
+			block_magma_block,
+			block_ancient_debris,
+			block_lava,
+			block_tall_grass_top,
+			block_large_fern_top,
+			block_sunflower,
+			block_sunflower_top,
+			block_lilac,
+			block_lilac_top,
+			block_rose_bush,
+			block_rose_bush_top,
+			block_peony,
+			block_peony_top,
+			block_farmland,
+			block_wheat,
+			block_hay_block,
+			block_pumpkin,
+			block_melon,
+			block_mossy_cobblestone,
+			block_azalea,
+			block_flowering_azalea,
+			block_oak_wood,
+			block_dripstone_tip_down,
+			block_dripstone_frustum_down,
+			block_dripstone_base_down,
+			block_dripstone_tip_up,
+			block_dripstone_frustum_up,
+			block_dripstone_base_up,
+			block_cave_vines_berries,
+			block_cave_vines_plant,
+			block_glow_lichen_down,
+			block_amethyst_cluster,
+			block_smooth_basalt,
+			block_cobweb,
+			block_sculk_vein_down,
+			block_stone_slab,
+			block_cobblestone_slab,
+			block_cobbled_deepslate_slab,
+			block_mossy_cobblestone_slab,
+			block_cobblestone,
+			block_cobbled_deepslate,
+			block_stone_stairs_north,
+			block_stone_stairs_south,
+			block_stone_stairs_east,
+			block_stone_stairs_west,
+			block_cobblestone_stairs_north,
+			block_cobblestone_stairs_south,
+			block_cobblestone_stairs_east,
+			block_cobblestone_stairs_west,
+			block_stone_slab_top,
+			block_cobblestone_slab_top,
+			block_cobbled_deepslate_slab_top,
+			block_mossy_cobblestone_slab_top,
+			block_hanging_roots,
+			block_dirt_path,
+			block_oak_planks,
+			block_spruce_planks,
+			block_birch_planks,
+			block_jungle_planks,
+			block_acacia_planks,
+			block_dark_oak_planks,
+			block_smooth_sandstone,
+			block_stripped_oak_log,
+			block_lantern,
+			block_torch,
+			block_oak_fence,
+			block_spruce_fence,
+			block_composter,
+			block_barrel,
+			block_oak_stairs_north,
+			block_oak_stairs_south,
+			block_oak_stairs_east,
+			block_oak_stairs_west,
+			block_spruce_stairs_north,
+			block_spruce_stairs_south,
+			block_spruce_stairs_east,
+			block_spruce_stairs_west,
+			block_sandstone_stairs_north,
+			block_sandstone_stairs_south,
+			block_sandstone_stairs_east,
+			block_sandstone_stairs_west,
+			block_oak_slab,
+			block_spruce_slab,
+			block_sandstone_slab,
+			block_glass,
+			block_bookshelf,
+			block_crafting_table,
+			block_furnace_block,
+			block_bed,
+			block_stone_bricks,
+			block_white_terracotta_wall,
+			block_bricks,
+			block_cobblestone_wall,
+			block_flower_pot,
+			block_oak_shutter_north,
+			block_oak_shutter_south,
+			block_oak_shutter_east,
+			block_oak_shutter_west,
+			block_spruce_shutter_north,
+			block_spruce_shutter_south,
+			block_spruce_shutter_east,
+			block_spruce_shutter_west,
+			block_lantern_hanging,
+			block_door_north_lower,
+			block_door_north_upper,
+			block_door_south_lower,
+			block_door_south_upper,
+			block_door_east_lower,
+			block_door_east_upper,
+			block_door_west_lower,
+			block_door_west_upper,
+			block_trapdoor_soffit,
+			block_spruce_trapdoor_soffit,
 			block_count
+		};
+		/*
+		//=====================================================================================
+		*/
+		enum biome_e : std::uint8_t
+		{
+			biome_ocean,
+			biome_beach,
+			biome_plains,
+			biome_meadow,
+			biome_forest,
+			biome_birch_forest,
+			biome_dark_forest,
+			biome_cherry_grove,
+			biome_taiga,
+			biome_snowy_taiga,
+			biome_snowy_plains,
+			biome_jungle,
+			biome_savanna,
+			biome_desert,
+			biome_badlands,
+			biome_swamp,
+			biome_stony_peaks,
+			biome_jagged_peaks,
+			biome_mushroom_fields,
+			biome_count
+		};
+		/*
+		//=====================================================================================
+		*/
+		enum tree_e : std::uint8_t
+		{
+			tree_none,
+			tree_oak_small,
+			tree_oak_grand,
+			tree_birch,
+			tree_spruce,
+			tree_spruce_tall,
+			tree_jungle_giant,
+			tree_acacia,
+			tree_dark_oak,
+			tree_cherry,
+			tree_oak_ancient,
+			tree_spruce_mega,
+			tree_willow,
+			tree_birch_tall,
+			tree_bush
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct wood_s
+		{
+			block_e log;
+			block_e leaves;
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct tree_plan_s
+		{
+			std::int32_t x;
+			std::int32_t z;
+			std::int32_t ground;
+			tree_e kind;
+			std::uint64_t seed;
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct lake_plan_s
+		{
+			std::int32_t chunk_x;
+			std::int32_t chunk_z;
+			std::int32_t x;
+			std::int32_t z;
+			std::int32_t level;
+			std::int32_t radius_x;
+			std::int32_t radius_z;
+			std::int32_t depth;
+			std::uint64_t seed;
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct field_plan_s
+		{
+			std::int32_t chunk_x;
+			std::int32_t chunk_z;
+			std::int32_t x;
+			std::int32_t z;
+			std::int32_t ground;
+			std::int32_t radius_x;
+			std::int32_t radius_z;
+			std::uint64_t seed;
+		};
+		/*
+		//=====================================================================================
+		*/
+		struct pyramid_plan_s
+		{
+			std::int32_t chunk_x;
+			std::int32_t chunk_z;
+			std::int32_t x;
+			std::int32_t z;
+			std::int32_t ground;
+			std::int32_t reach;
+			std::uint64_t seed;
 		};
 		/*
 		//=====================================================================================
@@ -866,6 +1153,19 @@ namespace mc
 		/*
 		//=====================================================================================
 		*/
+		struct chunk_job_s
+		{
+			world_e world;
+			family_e family;
+			std::int32_t x;
+			std::int32_t z;
+			std::uint64_t seed;
+			std::uint32_t epoch;
+			std::shared_ptr<const std::vector<std::uint8_t>> packet;
+		};
+		/*
+		//=====================================================================================
+		*/
 		struct segment_s
 		{
 			const std::uint8_t* shared;
@@ -910,6 +1210,8 @@ namespace mc
 			std::int64_t keep_alive_id;
 			std::int32_t view_x;
 			std::int32_t view_z;
+			std::vector<std::uint64_t> wanted;
+			bool compressed;
 			std::uint64_t connected_ms;
 			std::uint64_t keep_alive_sent_ms;
 			std::uint64_t keep_alive_seen_ms;
@@ -944,6 +1246,26 @@ namespace mc
 			value = (value ^ (value >> 27u)) * 0x94D049BB133111EBui64;
 
 			return (value ^ (value >> 31u)) & 0x7FFFFFFFFFFFFFFFui64;
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::uint64_t mix64(std::uint64_t value)
+		{
+			value ^= value >> 33u;
+			value *= 0xFF51AFD7ED558CCDui64;
+			value ^= value >> 33u;
+			value *= 0xC4CEB9FE1A85EC53ui64;
+			value ^= value >> 33u;
+
+			return value;
+		}
+		/*
+		//=====================================================================================
+		*/
+		static bool one_in(std::uint64_t value, std::uint64_t sides)
+		{
+			return (value % sides == 0ui64);
 		}
 		/*
 		//=====================================================================================
@@ -1294,6 +1616,31 @@ namespace mc
 		{
 			write_varint(out, static_cast<std::int32_t>(body.size()));
 			write_bytes(out, body.data(), body.size());
+		}
+		/*
+		//=====================================================================================
+		*/
+		static void write_packet_frame(std::vector<std::uint8_t>& out, const std::vector<std::uint8_t>& body)
+		{
+			write_varint(out, static_cast<std::int32_t>(body.size() + 1u));
+			write_u8(out, 0u);
+			write_bytes(out, body.data(), body.size());
+		}
+		/*
+		//=====================================================================================
+		*/
+		static std::size_t get_varint_size(std::int32_t value)
+		{
+			auto bits{ static_cast<std::uint32_t>(value) };
+			auto size{ std::size_t{ 1u } };
+
+			while (bits >= 0x80u)
+			{
+				bits >>= 7u;
+				size += 1u;
+			}
+
+			return size;
 		}
 		/*
 		//=====================================================================================
@@ -1780,7 +2127,10 @@ namespace mc
 	}
 
 	static_assert(std::size(known_protocols) == std::size(known_names));
-	static_assert(std::size(block_names) == structures::block_count && std::size(block_light_filters) == structures::block_count && std::size(block_fluids) == structures::block_count);
+	static_assert(structures::block_count <= 256u);
+	static_assert(structures::block_stone_stairs_south == structures::block_stone_stairs_north + 1 && structures::block_stone_stairs_east == structures::block_stone_stairs_north + 2 && structures::block_stone_stairs_west == structures::block_stone_stairs_north + 3);
+	static_assert(structures::block_cobblestone_stairs_south == structures::block_cobblestone_stairs_north + 1 && structures::block_cobblestone_stairs_east == structures::block_cobblestone_stairs_north + 2 && structures::block_cobblestone_stairs_west == structures::block_cobblestone_stairs_north + 3);
+	static_assert(gen_cave_levels == 97 && gen_cave_span == 5);
 	static_assert(sizeof(std::float_t) == 4u);
 	static_assert(sizeof(std::double_t) == 8u);
 	static_assert(get_section_index(spawn_block_x, spawn_block_y, spawn_block_z) == 2940u);
