@@ -198,7 +198,7 @@ namespace mc
 
 		for (auto player : world.get_players())
 		{
-			if (player->edition == structures::edition_java && player->npc == false)
+			if (player->edition == structures::edition_java)
 			{
 				nearby[player->world][edits_c::get_key(get_chunk(player->x), get_chunk(player->z))].push_back(player);
 			}
@@ -334,7 +334,7 @@ namespace mc
 
 		for (auto player : world.get_players())
 		{
-			auto* client{ player->edition == structures::edition_java && player->npc == false ? static_cast<structures::client_s*>(player->link) : nullptr };
+			auto* client{ player->edition == structures::edition_java ? static_cast<structures::client_s*>(player->link) : nullptr };
 
 			if (client && client->seen_drops.erase(entity_id))
 			{
@@ -361,7 +361,7 @@ namespace mc
 
 		for (auto player : world.get_players())
 		{
-			auto* client{ player->edition == structures::edition_java && player->npc == false ? static_cast<structures::client_s*>(player->link) : nullptr };
+			auto* client{ player->edition == structures::edition_java ? static_cast<structures::client_s*>(player->link) : nullptr };
 			auto chunk_x{ get_chunk(player->x) };
 			auto chunk_z{ get_chunk(player->z) };
 
@@ -408,7 +408,7 @@ namespace mc
 
 		for (auto player : world.get_players())
 		{
-			auto* client{ player->edition == structures::edition_java && player->npc == false ? static_cast<structures::client_s*>(player->link) : nullptr };
+			auto* client{ player->edition == structures::edition_java ? static_cast<structures::client_s*>(player->link) : nullptr };
 
 			if (client && player->world == drop.world && std::abs(get_chunk(player->x) - chunk_x) <= drop_view_chunks && std::abs(get_chunk(player->z) - chunk_z) <= drop_view_chunks && client->seen_drops.insert(drop.entity_id).second)
 			{
@@ -477,7 +477,7 @@ namespace mc
 
 		for (auto player : world.get_players())
 		{
-			found = found == nullptr && player->entity_id == entity_id && player->edition == structures::edition_java && player->npc == false ? player : found;
+			found = found == nullptr && player->entity_id == entity_id && player->edition == structures::edition_java ? player : found;
 		}
 
 		return found;

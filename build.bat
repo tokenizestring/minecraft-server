@@ -49,7 +49,8 @@ cl.exe %CFLAGS% ^
     game\drops\drops.cpp ^
     game\chat\chat.cpp ^
     game\command\command.cpp ^
-    game\npc\npc.cpp ^
+    game\friends\friends.cpp ^
+    game\hub\hub.cpp ^
     java\registry\java_registry.cpp ^
     java\protocol\java_protocol.cpp ^
     java\builder\java_builder.cpp ^
@@ -64,6 +65,7 @@ cl.exe %CFLAGS% ^
     java\market\java_market.cpp ^
     java\drops\java_drops.cpp ^
     java\glow\java_glow.cpp ^
+    java\social\java_social.cpp ^
     bedrock\raknet\raknet.cpp ^
     bedrock\packet\bedrock_packet.cpp ^
     bedrock\login\bedrock_login.cpp ^

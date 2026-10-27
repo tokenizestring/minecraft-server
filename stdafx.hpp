@@ -65,7 +65,8 @@
 #include "game/market/market.hpp"
 #include "game/drops/drops.hpp"
 #include "game/chat/chat.hpp"
-#include "game/npc/npc.hpp"
+#include "game/friends/friends.hpp"
+#include "game/hub/hub.hpp"
 #include "game/command/command.hpp"
 
 #include "java/registry/java_registry.hpp"
@@ -82,6 +83,7 @@
 #include "java/market/java_market.hpp"
 #include "java/drops/java_drops.hpp"
 #include "java/glow/java_glow.hpp"
+#include "java/social/java_social.hpp"
 
 #include "bedrock/raknet/raknet.hpp"
 #include "bedrock/packet/bedrock_packet.hpp"
