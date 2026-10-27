@@ -247,6 +247,7 @@ namespace mc
 
 		utils::log.write(color_play, "[play](join) '%s' on 'bedrock %s' entity %d at %.1f %.1f %.1f", session.name.c_str(), bedrock_version, session.player.entity_id, spawn_x, spawn_y, spawn_z);
 		world.add(session.player);
+		npc.show(session.player);
 		chat.join(session.player);
 	}
 	/*

@@ -117,6 +117,17 @@ namespace mc
 			functions::write_u32_le(body, static_cast<std::uint32_t>(subject.platform));
 			bedrock_packet.send(viewer, bedrock_add_player, body);
 		}
+
+		if (entity && subject.npc)
+		{
+			body.clear();
+			functions::write_varint(body, 1);
+			functions::write_varint(body, static_cast<std::int32_t>(bedrock_list_remove));
+			functions::write_u8(body, bedrock_list_action_remove);
+			functions::write_u64_le(body, subject.uuid_high);
+			functions::write_u64_le(body, subject.uuid_low);
+			bedrock_packet.send(viewer, bedrock_player_list, body);
+		}
 	}
 	/*
 	//=====================================================================================
