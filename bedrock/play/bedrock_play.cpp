@@ -241,6 +241,7 @@ namespace mc
 		session.player.y = spawn_y;
 		session.player.z = spawn_z;
 		session.player.yaw = spawn_yaw;
+		session.player.world = structures::world_spawn;
 		session.player.on_ground = true;
 		session.player.edition = structures::edition_bedrock;
 		session.player.link = &session;
@@ -248,7 +249,6 @@ namespace mc
 
 		utils::log.write(color_play, "[play](join) '%s' on 'bedrock %s' entity %d at %.1f %.1f %.1f", session.name.c_str(), bedrock_version, session.player.entity_id, spawn_x, spawn_y, spawn_z);
 		world.add(session.player);
-		npc.show(session.player);
 		chat.join(session.player);
 	}
 	/*
