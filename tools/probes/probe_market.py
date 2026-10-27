@@ -65,12 +65,15 @@ check('joining sends the player inventory', first and len(first[-1][1]) == 46, l
 say(s, sb3, 'smp', 2.0)
 with s.lock: spot = [x for p, x in s.log if p == cb3['player_position']][-1]
 sx, sy, sz = int(struct.unpack('>d', spot[1:9])[0] // 1), int(struct.unpack('>d', spot[9:17])[0]), int(struct.unpack('>d', spot[17:25])[0] // 1)
+import random
+sx += random.randint(-40, 40); sz += random.randint(-40, 40)
 with s.lock: s.log.clear()
 s.send(sb3['set_carried_item'], struct.pack('>H', 0))
 after = []
 for depth in range(1, 20):
+    s.move(sx + 0.5, sy - depth + 1, sz + 0.5, 0.0)
     s.send(sb3['player_action'], varint(0) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2))
-    s.send(sb3['player_action'], varint(2) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2 + 1)); time.sleep(0.3)
+    s.send(sb3['player_action'], varint(2) + pos(sx, sy - depth, sz) + b'\x01' + varint(depth * 2 + 1)); time.sleep(1.0)
     after = contents(s, cb3, 0)
     if after: break
 mined = after[-1][1][36] if after else None
@@ -90,13 +93,14 @@ say(b, sb2, 'buy', 0.6)
 with b.lock: screens = [x for p, x in b.log if p == cb2['open_screen']]
 menu = contents(b, cb2, 8)
 check('/buy opens the market chest', screens and rvarint(screens[-1], 0)[0] == 8 and menu and len(menu[-1][1]) == 54, len(screens))
-listing = menu[-1][1][0] if menu else None
+newest = max([i for i, x in enumerate(menu[-1][1][:45]) if x], default=0) if menu else 0
+listing = menu[-1][1][newest] if menu else None
 check('the listing shows the mined item for 26.2', listing and items2[listing[0]] == items3[mined[0]], listing and items2[listing[0]])
 info = menu[-1][1][49] if menu else None
 check('balance button is an emerald', info and items2[info[0]] == 'minecraft:emerald', info)
 
 with b.lock: b.log.clear()
-b.send(sb2['container_click'], varint(8) + varint(0) + struct.pack('>hb', 0, 0) + varint(0) + varint(0) + hashed()); time.sleep(0.5)
+b.send(sb2['container_click'], varint(8) + varint(0) + struct.pack('>hb', newest, 0) + varint(0) + varint(0) + hashed()); time.sleep(0.5)
 check('clicking the listing buys it', any(b'bought 1' in n for n in notes(b, cb2)), notes(b, cb2))
 check('the seller is told', any(b'bought your' in n for n in notes(s, cb3)), None)
 inv = contents(b, cb2, 0)

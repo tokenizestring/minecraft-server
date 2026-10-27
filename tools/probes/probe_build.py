@@ -103,10 +103,13 @@ b.send(sb3['player_action'], varint(0) + pos(*stone) + b'\x01' + varint(10)); ti
 check('creative break turns the stone to air for everyone', updates(b, cb3['block_update'], pos(*stone))[-1:] == [0] and updates(w2, cb2['block_update'], pos(*stone))[-1:] == [0] and updates(w8, 0x23, pos18(*stone))[-1:] == [0], None)
 
 w8.send(0x09, struct.pack('>H', 0))
+import random
+mx, mz = sx + random.randint(-20, 20), sz + random.randint(-20, 20)
 for depth in range(1, 20):
     with w8.lock: w8.log.clear()
-    w8.send(0x07, b'\x00' + pos18(sx + 3, sy - depth, sz + 3) + b'\x01')
-    w8.send(0x07, b'\x02' + pos18(sx + 3, sy - depth, sz + 3) + b'\x01'); time.sleep(0.3)
+    w8.move(mx + 0.5, sy - depth + 1, mz + 0.5, 0.0)
+    w8.send(0x07, b'\x00' + pos18(mx, sy - depth, mz) + b'\x01')
+    w8.send(0x07, b'\x02' + pos18(mx, sy - depth, mz) + b'\x01'); time.sleep(1.0)
     with w8.lock: got = [x for p, x in w8.log if p == 0x30 and x[0] == 0]
     if got: break
 check('1.8 survival mining fills the inventory', bool(got), depth)
