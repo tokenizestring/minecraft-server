@@ -30,6 +30,9 @@ std::int32_t main()
 		mc::java_chunk.build();
 		mc::java_command.build();
 		mc::java_chat.build();
+		mc::npc.load();
+		mc::java_menu.build();
+		mc::bedrock_menu.build();
 		mc::bedrock_chunk.build();
 		mc::bedrock_player.build();
 		mc::bedrock_debug.load();

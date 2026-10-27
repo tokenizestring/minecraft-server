@@ -36,6 +36,7 @@ cl.exe %CFLAGS% ^
     game\light\light.cpp ^
     game\chat\chat.cpp ^
     game\command\command.cpp ^
+    game\npc\npc.cpp ^
     java\registry\java_registry.cpp ^
     java\protocol\java_protocol.cpp ^
     java\chunk\java_chunk.cpp ^
@@ -44,6 +45,7 @@ cl.exe %CFLAGS% ^
     java\chat\java_chat.cpp ^
     java\command\java_command.cpp ^
     java\block\java_block.cpp ^
+    java\menu\java_menu.cpp ^
     bedrock\raknet\raknet.cpp ^
     bedrock\packet\bedrock_packet.cpp ^
     bedrock\login\bedrock_login.cpp ^
@@ -51,6 +53,7 @@ cl.exe %CFLAGS% ^
     bedrock\play\bedrock_play.cpp ^
     bedrock\player\bedrock_player.cpp ^
     bedrock\chat\bedrock_chat.cpp ^
+    bedrock\menu\bedrock_menu.cpp ^
     bedrock\debug\bedrock_debug.cpp ^
     /Fo"build\obj\\" ^
     /Fe"build\bin\server.exe" ^

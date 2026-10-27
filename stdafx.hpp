@@ -47,6 +47,7 @@
 #include "game/terrain/terrain.hpp"
 #include "game/light/light.hpp"
 #include "game/chat/chat.hpp"
+#include "game/npc/npc.hpp"
 #include "game/command/command.hpp"
 
 #include "java/registry/java_registry.hpp"
@@ -57,6 +58,7 @@
 #include "java/chat/java_chat.hpp"
 #include "java/command/java_command.hpp"
 #include "java/block/java_block.hpp"
+#include "java/menu/java_menu.hpp"
 
 #include "bedrock/raknet/raknet.hpp"
 #include "bedrock/packet/bedrock_packet.hpp"
@@ -65,6 +67,7 @@
 #include "bedrock/play/bedrock_play.hpp"
 #include "bedrock/player/bedrock_player.hpp"
 #include "bedrock/chat/bedrock_chat.hpp"
+#include "bedrock/menu/bedrock_menu.hpp"
 #include "bedrock/debug/bedrock_debug.hpp"
 
 //=====================================================================================
