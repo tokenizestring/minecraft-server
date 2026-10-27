@@ -128,4 +128,33 @@ d.client.game([bp.uvarint(101) + bp.uvarint(form_id) + b'\x01' + bp.uvarint(2) +
 tips = [b for b in d.packets(9) if b[:3] == b'\x00\x00\x05']
 check('bedrock choosing random teleport runs its action', any(b'random teleport opens' in t for t in tips), tips)
 d.close()
+import math
+def angle(value):
+    return int(value * 256.0 / 360.0) & 0xFF
+
+for protocol, tag in ((777, '26_3'), (47, None)):
+    c = Java('Look' + (tag or '18'), protocol); c.join(); time.sleep(1.0)
+    if tag:
+        cb, sb = packet_ids(tag); rot, head, pos = cb['move_entity_rot'], cb['rotate_head'], cb['player_position']
+    else:
+        rot, head, pos = 0x16, 0x19, 0x08
+    with c.lock: spawn = [b for p, b in c.log if p == pos]
+    yaw = struct.unpack('>f', spawn[0][-12:-8] if tag else spawn[0][24:28])[0]
+    check('%s spawns facing north (yaw 180)' % (tag or '1.8'), yaw == 180.0, yaw)
+    with c.lock: c.log.clear()
+    c.move(9.5, 58.0, -4.5, 0.0); time.sleep(0.5)
+    with c.lock: looks = [b for p, b in c.log if p == rot and rvarint(b, 0)[0] == entity]; heads = [b for p, b in c.log if p == head and rvarint(b, 0)[0] == entity]
+    want = angle(math.degrees(math.atan2(-(9.5 - 6.5), -4.5 + 8.5)))
+    check('%s npc turns to look at a nearby player' % (tag or '1.8'), looks and abs(looks[-1][1] - want) <= 1 and heads and abs(heads[-1][1] - want) <= 1, (looks, want))
+    with c.lock: c.log.clear()
+    c.move(12.5, 60.0, 40.5, 0.0); time.sleep(0.5)
+    with c.lock: looks = [b for p, b in c.log if p == rot and rvarint(b, 0)[0] == entity]
+    check('%s npc returns to its 45 degree pose when you walk away' % (tag or '1.8'), looks and looks[-1][1] == angle(-45.0), looks)
+    c.close()
+
+d = Bedrock('LookBedrock'); d.join(); time.sleep(1.0)
+d.move(9.5, 58.0, -4.5, 0.0); time.sleep(0.6)
+moves = [x for x in d.packets(19) if rvarint(x, 0)[0] == entity]
+check('bedrock npc turns to look at a nearby player', moves and abs(struct.unpack('<f', moves[-1][rvarint(moves[-1], 0)[1] + 16:rvarint(moves[-1], 0)[1] + 20])[0] - math.degrees(math.atan2(-3.0, 4.0))) < 0.5, [m.hex() for m in moves][-1:])
+d.close()
 print('failures:', fails)
