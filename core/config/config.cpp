@@ -76,6 +76,11 @@ namespace mc
 			chunk_cache_mb = static_cast<std::uint32_t>(read_number(value, chunk_cache_mb, 1u, 4096u));
 		}
 
+		else if (key == "operators")
+		{
+			operators.assign(value);
+		}
+
 		else if (key == "chat-lines")
 		{
 			chat_lines = static_cast<std::uint32_t>(read_number(value, chat_lines, 1u, max_chat_lines));
@@ -106,6 +111,8 @@ namespace mc
 			std::fprintf(file, "# chunks sent around each java player, and memory kept for ready-made chunks\n");
 			std::fprintf(file, "view-distance=%u\n", view_distance);
 			std::fprintf(file, "chunk-cache-mb=%u\n\n", chunk_cache_mb);
+			std::fprintf(file, "# names allowed to use /gamemode, separated by commas\n");
+			std::fprintf(file, "operators=%s\n\n", operators.c_str());
 			std::fprintf(file, "# chat sidebar: lines shown (1-15) and seconds before a line fades\n");
 			std::fprintf(file, "chat-lines=%u\n", chat_lines);
 			std::fprintf(file, "chat-fade-seconds=%llu\n", chat_fade_ms / 1000ui64);
@@ -141,6 +148,23 @@ namespace mc
 		}
 
 		return result;
+	}
+	/*
+	//=====================================================================================
+	*/
+	bool config_c::is_operator(std::string_view name) const
+	{
+		auto found{ false };
+		auto start{ 0u };
+
+		while (start <= operators.size() && name.size())
+		{
+			auto end{ std::min(operators.find(',', start), operators.size()) };
+			found = found || trim(std::string_view{ operators }.substr(start, end - start)) == name;
+			start = static_cast<std::uint32_t>(end) + 1u;
+		}
+
+		return found;
 	}
 }
 
