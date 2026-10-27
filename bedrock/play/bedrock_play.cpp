@@ -105,7 +105,7 @@ namespace mc
 		functions::write_f32_le(out, static_cast<std::float_t>(spawn_y) + bedrock_eye_height);
 		functions::write_f32_le(out, static_cast<std::float_t>(spawn_z));
 		functions::write_f32_le(out, 0.0f);
-		functions::write_f32_le(out, 0.0f);
+		functions::write_f32_le(out, spawn_yaw);
 
 		functions::write_u64_le(out, 0ui64);
 		functions::write_u16_le(out, 0u);
@@ -240,6 +240,7 @@ namespace mc
 		session.player.x = spawn_x;
 		session.player.y = spawn_y;
 		session.player.z = spawn_z;
+		session.player.yaw = spawn_yaw;
 		session.player.on_ground = true;
 		session.player.edition = structures::edition_bedrock;
 		session.player.link = &session;
@@ -268,8 +269,8 @@ namespace mc
 		functions::write_f32_le(body, static_cast<std::float_t>(spawn_y) + bedrock_eye_height);
 		functions::write_f32_le(body, static_cast<std::float_t>(spawn_z));
 		functions::write_f32_le(body, 0.0f);
-		functions::write_f32_le(body, 0.0f);
-		functions::write_f32_le(body, 0.0f);
+		functions::write_f32_le(body, spawn_yaw);
+		functions::write_f32_le(body, spawn_yaw);
 		functions::write_u8(body, bedrock_move_teleport);
 		functions::write_bool(body, false);
 		functions::write_varint64(body, 0ui64);

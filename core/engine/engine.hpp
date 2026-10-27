@@ -325,6 +325,7 @@ namespace mc
 	constexpr auto spawn_x = 12.5;
 	constexpr auto spawn_y = 60.0;
 	constexpr auto spawn_z = 7.5;
+	constexpr auto spawn_yaw = 180.0f;
 	constexpr auto spawn_platform_radius = 2;
 	constexpr auto spawn_platform_blocks = (spawn_platform_radius * 2 + 1) * (spawn_platform_radius * 2 + 1);
 	constexpr auto rescue_y = -32.0;
@@ -356,6 +357,10 @@ namespace mc
 	constexpr auto npc_file_name = "npcs.txt";
 	constexpr auto max_npcs = 64u;
 	constexpr auto npc_ground_search = 16;
+	constexpr auto npc_look_range = 12.0;
+	constexpr std::uint32_t npc_angle_sent = 0x10000u;
+	constexpr auto degrees_per_radian = 57.29577951308232;
+	constexpr std::int32_t v1_8_play_out_entity_look = 0x16;
 	constexpr auto max_menu_rows = 6u;
 	constexpr auto menu_window_id = 7u;
 	constexpr std::int32_t modern_component_item_name = 9;
@@ -461,6 +466,7 @@ namespace mc
 			std::int32_t play_out_player_info_remove;
 			std::int32_t play_out_teleport_entity;
 			std::int32_t play_out_rotate_head;
+			std::int32_t play_out_move_entity_rot;
 			std::int32_t play_out_remove_entities;
 			std::int32_t play_in_chat;
 			std::int32_t play_out_system_chat;
@@ -622,6 +628,7 @@ namespace mc
 			char color;
 			std::uint8_t gamemode;
 			bool npc;
+			std::array<std::uint32_t, max_npcs> npc_angles;
 			std::uint32_t menu;
 			std::int32_t menu_state;
 			edition_e edition;
@@ -1371,11 +1378,11 @@ namespace mc
 			switch (family)
 			{
 			case structures::family_26_2:
-				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3B, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x60, .play_out_transfer = 0x81, .item_path = "data/java/items_26_2.txt", .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25 };
+				layout = { .pack_version = "26.2", .data_path = "data/java/26_2.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0C, .config_out_known_packs = 0x0E, .config_out_tags = 0x0D, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x26, .play_out_keep_alive = 0x2C, .play_out_chunk = 0x2D, .play_out_login = 0x31, .play_out_position = 0x48, .play_out_center_chunk = 0x5E, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x46, .play_out_player_info_remove = 0x45, .play_out_teleport_entity = 0x7D, .play_out_rotate_head = 0x53, .play_out_move_entity_rot = 0x38,.play_out_remove_entities = 0x4D, .play_in_chat = 0x09, .play_out_system_chat = 0x79, .play_out_set_objective = 0x6A, .play_out_set_display_objective = 0x62, .play_out_set_score = 0x6E, .play_out_reset_score = 0x4F, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3B, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x60, .play_out_transfer = 0x81, .item_path = "data/java/items_26_2.txt", .play_out_commands = 0x10, .player_entity_type = 156, .grass_block = 9u, .byte_bitsets = false, .optional_previous_gamemode = false, .direct_bits = 15u, .play_out_forget_chunk = 0x25 };
 				break;
 
 			case structures::family_26_3:
-				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3C, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x62, .play_out_transfer = 0x84, .item_path = "data/java/items_26_3.txt", .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26 };
+				layout = { .pack_version = "26.3", .data_path = "data/java/26_3.txt", .config_out_disconnect = 0x02, .config_out_features = 0x0D, .config_out_known_packs = 0x0F, .config_out_tags = 0x0E, .config_in_finish = 0x03, .play_out_disconnect = 0x20, .play_out_game_event = 0x27, .play_out_keep_alive = 0x2D, .play_out_chunk = 0x2E, .play_out_login = 0x32, .play_out_position = 0x49, .play_out_center_chunk = 0x60, .play_in_keep_alive = 0x1C, .play_in_move_position = 0x1E, .play_in_move_position_rotation = 0x1F, .play_in_move_rotation = 0x20, .play_out_add_entity = 0x01, .play_out_player_info_update = 0x47, .play_out_player_info_remove = 0x46, .play_out_teleport_entity = 0x80, .play_out_rotate_head = 0x55, .play_out_move_entity_rot = 0x39,.play_out_remove_entities = 0x4E, .play_in_chat = 0x09, .play_out_system_chat = 0x7C, .play_out_set_objective = 0x6C, .play_out_set_display_objective = 0x64, .play_out_set_score = 0x70, .play_out_reset_score = 0x50, .play_in_chat_command = 0x07, .play_in_player_action = 0x29, .play_in_use_item_on = 0x42, .play_in_use_item = 0x43, .play_out_block_changed_ack = 0x04, .play_in_attack = 0x01, .play_in_interact = 0x1A, .play_in_container_click = 0x12, .play_in_container_close = 0x13, .play_out_open_screen = 0x3C, .play_out_container_content = 0x12, .play_out_container_close = 0x11, .play_out_cursor_item = 0x62, .play_out_transfer = 0x84, .item_path = "data/java/items_26_3.txt", .play_out_commands = 0x10, .player_entity_type = 159, .grass_block = 9u, .byte_bitsets = true, .optional_previous_gamemode = true, .direct_bits = 16u, .play_out_forget_chunk = 0x26 };
 				break;
 			}
 

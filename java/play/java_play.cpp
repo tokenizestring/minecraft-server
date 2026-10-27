@@ -21,6 +21,7 @@ namespace mc
 		client.player.x = spawn_x;
 		client.player.y = spawn_y;
 		client.player.z = spawn_z;
+		client.player.yaw = spawn_yaw;
 		client.player.on_ground = true;
 		client.player.edition = structures::edition_java;
 		client.player.platform = bedrock_platform_java;
@@ -303,7 +304,7 @@ namespace mc
 			functions::write_f64(packet, 0.0);
 			functions::write_f64(packet, 0.0);
 			functions::write_f64(packet, 0.0);
-			functions::write_f32(packet, 0.0f);
+			functions::write_f32(packet, spawn_yaw);
 			functions::write_f32(packet, 0.0f);
 			functions::write_i32(packet, 0);
 		}
@@ -314,7 +315,7 @@ namespace mc
 			functions::write_f64(packet, spawn_x);
 			functions::write_f64(packet, spawn_y);
 			functions::write_f64(packet, spawn_z);
-			functions::write_f32(packet, 0.0f);
+			functions::write_f32(packet, spawn_yaw);
 			functions::write_f32(packet, 0.0f);
 			functions::write_u8(packet, 0u);
 		}
